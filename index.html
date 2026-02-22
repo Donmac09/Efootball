@@ -855,7 +855,7 @@
 
         // Global variables
         let nhost = null;
-        let currentUser = null;
+        window.currentUser = null; // Made global for easier access across scripts
         let currentChatMatch = null;
         let onlineInterval;
         let onlineUsers = 0;
@@ -1049,7 +1049,15 @@
         };
 
         window.showLeaderboard = function() {
-            window.showLeagues();
+            if (!currentUser) { window.showLoginModal(); return; }
+            window.switchMode('freeplay');
+            // Wait for DOM update and scroll to leaderboard
+            setTimeout(() => {
+                const leaderboard = document.querySelector('#freeplaySection .leaderboard-table');
+                if (leaderboard) {
+                    leaderboard.scrollIntoView({ behavior: 'smooth' });
+                }
+            }, 100);
         };
 
         window.showProfile = function() {
@@ -1103,7 +1111,10 @@
 
             try {
                 const nhost = await ensureNhost();
-                const { error } = await nhost.auth.resetPassword({ email });
+                const { error } = await nhost.auth.resetPassword({
+                    email,
+                    options: { redirectTo: window.location.origin }
+                });
 
                 if (error) throw error;
 
@@ -1131,6 +1142,7 @@
                     password,
                     options: {
                         displayName: name,
+                        redirectTo: window.location.origin,
                         metadata: {
                             country,
                             efootballUser
