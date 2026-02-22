@@ -855,7 +855,7 @@
 
         // Global variables
         let nhost = null;
-        window.currentUser = null; // Made global for easier access across scripts
+        let currentUser = null;
         let currentChatMatch = null;
         let onlineInterval;
         let onlineUsers = 0;
@@ -932,21 +932,26 @@
 
                         console.log('Nhost initialized successfully');
 
-                        // Check for existing session
-                        const session = nhost.auth.getSession();
+                        // Listen for auth state changes
+                        nhost.auth.onAuthStateChanged((event, session) => {
+                            console.log('Auth state changed:', event);
+                            currentUser = session?.user;
+                            window.currentUser = currentUser; // Maintain global access
 
-                        if (session) {
-                            currentUser = session.user;
-                            if (currentUser.email === ADMIN_EMAIL) {
-                                currentUser.roles = ['admin'];
+                            if (currentUser) {
+                                if (currentUser.email === ADMIN_EMAIL) {
+                                    currentUser.roles = ['admin'];
+                                }
+                                window.updateUIForLoggedInUser();
+                                window.loadUserProfile();
+                            } else {
+                                window.updateUIForLoggedOutUser();
                             }
-                            window.updateUIForLoggedInUser();
-                            await window.loadUserProfile();
-                        }
+                            window.showHome();
+                        });
 
                         initResolve();
                         window.showToast('App ready', 'success');
-                        window.showHome();
 
                     } catch (nhostError) {
                         console.error('Nhost initialization error:', nhostError);
@@ -1113,7 +1118,7 @@
                 const nhost = await ensureNhost();
                 const { error } = await nhost.auth.resetPassword({
                     email,
-                    options: { redirectTo: window.location.origin }
+                    redirectTo: window.location.origin
                 });
 
                 if (error) throw error;
@@ -1171,20 +1176,8 @@
                 const { error } = await nhost.auth.signIn({ email, password });
                 if (error) throw error;
 
-                const session = nhost.auth.getSession();
-                currentUser = session?.user;
-
-                // Check if user is admin
-                if (currentUser.email === ADMIN_EMAIL) {
-                    currentUser.roles = ['admin'];
-                }
-
-                window.updateUIForLoggedInUser();
-                await window.loadUserProfile();
-
                 window.showToast('Login successful!', 'success');
                 window.closeModal('loginModal');
-                window.showHome();
             } catch (error) {
                 window.showToast(error.message, 'error');
             }
@@ -1194,13 +1187,11 @@
             try {
                 ensureNhost().then(nhost => {
                     nhost.auth.signOut();
-                    currentUser = null;
-                    window.updateUIForLoggedOutUser();
-                    window.showHome();
                     window.showToast('Logged out', 'info');
                 }).catch(() => {
-                    // Even if nhost fails, we can still logout locally
+                    // Fallback local cleanup if nhost fails
                     currentUser = null;
+                    window.currentUser = null;
                     window.updateUIForLoggedOutUser();
                     window.showHome();
                     window.showToast('Logged out', 'info');
