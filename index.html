@@ -1118,7 +1118,7 @@
                 const nhost = await ensureNhost();
                 const { error } = await nhost.auth.resetPassword({
                     email,
-                    redirectTo: window.location.origin
+                    options: { redirectTo: window.location.origin }
                 });
 
                 if (error) throw error;
@@ -1322,21 +1322,33 @@
             const efootballUser = document.getElementById('editEfootball').value;
 
             try {
-                const nhost = await ensureNhost();
-                const { error } = await nhost.auth.updateUser({
+                // Since Nhost SDK v2 doesn't have a direct updateUser method,
+                // we use a GraphQL mutation to update the user's profile.
+                const UPDATE_USER_MUTATION = `
+                    mutation UpdateUser($id: uuid!, $displayName: String!, $metadata: jsonb!) {
+                        updateUser(pk_columns: {id: $id}, _set: {displayName: $displayName, metadata: $metadata}) {
+                            id
+                            displayName
+                            metadata
+                        }
+                    }
+                `;
+
+                const variables = {
+                    id: currentUser.id,
                     displayName,
                     metadata: {
                         ...currentUser.metadata,
                         country,
                         efootballUser
                     }
-                });
+                };
 
-                if (error) throw error;
+                await makeGraphQLRequest(UPDATE_USER_MUTATION, variables);
 
                 // Update local current user
                 currentUser.displayName = displayName;
-                currentUser.metadata = { ...currentUser.metadata, country, efootballUser };
+                currentUser.metadata = variables.metadata;
 
                 window.loadProfileData();
                 window.loadUserProfile();
@@ -1344,7 +1356,7 @@
                 window.showToast('Profile updated', 'success');
                 window.closeModal('editProfileModal');
             } catch (error) {
-                window.showToast(error.message, 'error');
+                window.showToast(error.message || 'Failed to update profile', 'error');
             }
         };
 
