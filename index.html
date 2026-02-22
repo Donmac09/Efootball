@@ -1116,10 +1116,7 @@
 
             try {
                 const nhost = await ensureNhost();
-                const { error } = await nhost.auth.resetPassword({
-                    email,
-                    options: { redirectTo: window.location.origin }
-                });
+                const { error } = await nhost.auth.resetPassword({ email });
 
                 if (error) throw error;
 
@@ -1147,7 +1144,6 @@
                     password,
                     options: {
                         displayName: name,
-                        redirectTo: window.location.origin,
                         metadata: {
                             country,
                             efootballUser
