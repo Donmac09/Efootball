@@ -580,14 +580,14 @@
             text-align: center;
             margin-top: 0.5rem;
         }
-        
+
         .forgot-password-link a {
             color: #00d4ff;
             cursor: pointer;
             font-size: 0.9rem;
             text-decoration: none;
         }
-        
+
         .forgot-password-link a:hover {
             text-decoration: underline;
         }
@@ -616,7 +616,10 @@
         }
     </style>
     <!-- Nhost SDK -->
-    <script src="https://unpkg.com/@nhost/nhost-js@2.0.0/dist/index.js"></script>
+    <script type="module">
+        import { NhostClient } from 'https://cdn.jsdelivr.net/npm/@nhost/nhost-js@2.1.1/+esm'
+        window.NhostClient = NhostClient
+    </script>
 </head>
 <body>
     <nav class="navbar">
@@ -849,7 +852,7 @@
     <script>
         // Configuration
         const ADMIN_EMAIL = 'donmacdatahub@gmail.com';
-        
+
         // Global variables
         let nhost = null;
         let currentUser = null;
@@ -858,7 +861,7 @@
         let onlineUsers = 0;
         let initResolve;
         let initReject;
-        
+
         // Create a promise that resolves when nhost is initialized
         const initPromise = new Promise((resolve, reject) => {
             initResolve = resolve;
@@ -867,15 +870,15 @@
 
         // Countries list
         const COUNTRIES = [
-            "Argentina", "Australia", "Austria", "Belgium", "Brazil", "Bulgaria", "Canada", 
-            "Chile", "China", "Colombia", "Costa Rica", "Croatia", "Czech Republic", "Denmark", 
-            "Ecuador", "Egypt", "England", "Finland", "France", "Germany", "Ghana", "Greece", 
-            "Hungary", "Iceland", "India", "Indonesia", "Iran", "Ireland", "Israel", "Italy", 
-            "Ivory Coast", "Japan", "Kazakhstan", "Kenya", "Malaysia", "Mexico", "Morocco", 
-            "Netherlands", "New Zealand", "Nigeria", "Norway", "Peru", "Philippines", "Poland", 
-            "Portugal", "Qatar", "Romania", "Russia", "Saudi Arabia", "Scotland", "Senegal", 
-            "Serbia", "Singapore", "Slovakia", "Slovenia", "South Africa", "South Korea", "Spain", 
-            "Sweden", "Switzerland", "Thailand", "Tunisia", "Turkey", "Ukraine", "United Arab Emirates", 
+            "Argentina", "Australia", "Austria", "Belgium", "Brazil", "Bulgaria", "Canada",
+            "Chile", "China", "Colombia", "Costa Rica", "Croatia", "Czech Republic", "Denmark",
+            "Ecuador", "Egypt", "England", "Finland", "France", "Germany", "Ghana", "Greece",
+            "Hungary", "Iceland", "India", "Indonesia", "Iran", "Ireland", "Israel", "Italy",
+            "Ivory Coast", "Japan", "Kazakhstan", "Kenya", "Malaysia", "Mexico", "Morocco",
+            "Netherlands", "New Zealand", "Nigeria", "Norway", "Peru", "Philippines", "Poland",
+            "Portugal", "Qatar", "Romania", "Russia", "Saudi Arabia", "Scotland", "Senegal",
+            "Serbia", "Singapore", "Slovakia", "Slovenia", "South Africa", "South Korea", "Spain",
+            "Sweden", "Switzerland", "Thailand", "Tunisia", "Turkey", "Ukraine", "United Arab Emirates",
             "United Kingdom", "United States", "Uruguay", "Venezuela", "Vietnam", "Wales", "Zimbabwe"
         ];
 
@@ -893,58 +896,68 @@
             }
         }
 
-        // Helper function for GraphQL requests (simplified for demo)
+        // Helper function for GraphQL requests
         async function makeGraphQLRequest(query, variables = {}) {
-            // This is a placeholder - in a real app, you'd implement actual GraphQL calls
-            console.log('GraphQL request:', query, variables);
-            return { players: [] };
+            try {
+                const nhost = await ensureNhost();
+                const { data, error } = await nhost.graphql.request(query, variables);
+
+                if (error) {
+                    console.error('GraphQL error:', error);
+                    throw error;
+                }
+
+                return data;
+            } catch (error) {
+                console.error('Failed to make GraphQL request:', error);
+                throw error;
+            }
         }
 
         // Initialize the application with fallback
         async function initializeApp() {
             try {
                 window.showToast('Initializing app...', 'info');
-                
-                if (typeof NhostClient !== 'undefined') {
+
+                // NhostClient should be available on window from the module script
+                const Client = window.NhostClient || (typeof NhostClient !== 'undefined' ? NhostClient : null);
+
+                if (Client) {
                     try {
-                        // Try to initialize with the provided subdomain
-                        nhost = new NhostClient({
+                        // Initialize Nhost
+                        nhost = new Client({
                             subdomain: 'kodpbmemmbmbzuocnlbh',
                             region: 'us-east-1'
                         });
-                        
-                        console.log('Nhost initialized with provided subdomain');
-                        
-                        // Check if initialization was successful by testing auth
-                        const session = nhost.auth.getSession();
-                        console.log('Initial session check:', session ? 'Has session' : 'No session');
-                        
-                        initResolve();
-                        window.showToast('App initialized successfully!', 'success');
-                        
+
+                        console.log('Nhost initialized successfully');
+
                         // Check for existing session
+                        const session = nhost.auth.getSession();
+
                         if (session) {
                             currentUser = session.user;
-                            
-                            // Check if user is admin
                             if (currentUser.email === ADMIN_EMAIL) {
                                 currentUser.roles = ['admin'];
                             }
-                            
                             window.updateUIForLoggedInUser();
                             await window.loadUserProfile();
-                            window.showHome();
                         }
+
+                        initResolve();
+                        window.showToast('App ready', 'success');
+                        window.showHome();
+
                     } catch (nhostError) {
                         console.error('Nhost initialization error:', nhostError);
-                        // Fallback to demo mode
                         setupDemoMode();
                     }
                 } else {
-                    throw new Error('NhostClient not loaded');
+                    console.error('Nhost SDK not found');
+                    setupDemoMode();
                 }
             } catch (error) {
-                console.error('Failed to initialize:', error);
+                console.error('Failed to initialize app:', error);
                 setupDemoMode();
             }
         }
@@ -953,7 +966,7 @@
         function setupDemoMode() {
             console.log('Setting up demo mode');
             window.showToast('Running in demo mode - some features may be limited', 'info');
-            
+
             // Create a mock nhost object
             nhost = {
                 auth: {
@@ -975,7 +988,7 @@
                     }
                 }
             };
-            
+
             initResolve();
         }
 
@@ -1054,12 +1067,12 @@
             document.getElementById('backButton').style.display = 'none';
         };
 
-        window.showLoginModal = function() { 
-            document.getElementById('loginModal').classList.add('active'); 
+        window.showLoginModal = function() {
+            document.getElementById('loginModal').classList.add('active');
         };
 
-        window.showRegisterModal = function() { 
-            document.getElementById('registerModal').classList.add('active'); 
+        window.showRegisterModal = function() {
+            document.getElementById('registerModal').classList.add('active');
         };
 
         window.showForgotPasswordModal = function() {
@@ -1067,31 +1080,31 @@
             document.getElementById('forgotPasswordModal').classList.add('active');
         };
 
-        window.closeModal = function(id) { 
-            document.getElementById(id).classList.remove('active'); 
+        window.closeModal = function(id) {
+            document.getElementById(id).classList.remove('active');
         };
 
-        window.switchToRegister = function() { 
-            window.closeModal('loginModal'); 
+        window.switchToRegister = function() {
+            window.closeModal('loginModal');
             window.closeModal('forgotPasswordModal');
-            window.showRegisterModal(); 
+            window.showRegisterModal();
         };
 
-        window.switchToLogin = function() { 
-            window.closeModal('registerModal'); 
+        window.switchToLogin = function() {
+            window.closeModal('registerModal');
             window.closeModal('forgotPasswordModal');
-            window.showLoginModal(); 
+            window.showLoginModal();
         };
 
         window.handleForgotPassword = async function(event) {
             event.preventDefault();
-            
+
             const email = document.getElementById('forgotEmail').value;
 
             try {
                 const nhost = await ensureNhost();
                 const { error } = await nhost.auth.resetPassword({ email });
-                
+
                 if (error) throw error;
 
                 window.showToast('Password reset link sent to your email!', 'success');
@@ -1104,7 +1117,7 @@
 
         window.handleRegister = async function(event) {
             event.preventDefault();
-            
+
             const email = document.getElementById('regEmail').value;
             const password = document.getElementById('regPassword').value;
             const name = document.getElementById('regName').value;
@@ -1137,7 +1150,7 @@
 
         window.handleLogin = async function(event) {
             event.preventDefault();
-            
+
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
 
@@ -1148,15 +1161,15 @@
 
                 const session = nhost.auth.getSession();
                 currentUser = session?.user;
-                
+
                 // Check if user is admin
                 if (currentUser.email === ADMIN_EMAIL) {
                     currentUser.roles = ['admin'];
                 }
-                
+
                 window.updateUIForLoggedInUser();
                 await window.loadUserProfile();
-                
+
                 window.showToast('Login successful!', 'success');
                 window.closeModal('loginModal');
                 window.showHome();
@@ -1192,7 +1205,7 @@
             document.getElementById('mobileLoginBtn').style.display = 'none';
             document.getElementById('mobileRegisterBtn').style.display = 'none';
             document.getElementById('mobileLogoutBtn').style.display = 'block';
-            
+
             if (currentUser?.email === ADMIN_EMAIL) {
                 document.getElementById('adminBtn').style.display = 'inline-block';
             }
@@ -1212,8 +1225,10 @@
             if (!currentUser) return;
 
             try {
-                // In demo mode, just set some placeholder data
-                document.getElementById('playerName').textContent = currentUser.email || 'Player';
+                // Use displayName from Nhost user object
+                document.getElementById('playerName').textContent = currentUser.displayName || currentUser.email.split('@')[0];
+
+                // You could also fetch more detailed profile data here via GraphQL if needed
             } catch (error) {
                 console.error('Error loading profile:', error);
             }
@@ -1221,16 +1236,16 @@
 
         window.loadProfileData = function() {
             if (currentUser) {
-                document.getElementById('profileName').textContent = currentUser.email || 'N/A';
-                document.getElementById('profileCountry').textContent = currentUser.country || 'N/A';
-                document.getElementById('profileEfootball').textContent = currentUser.efootball_user || 'N/A';
-                document.getElementById('profileLeague').textContent = currentUser.league || 'None';
+                document.getElementById('profileName').textContent = currentUser.displayName || 'N/A';
+                document.getElementById('profileCountry').textContent = currentUser.metadata?.country || 'N/A';
+                document.getElementById('profileEfootball').textContent = currentUser.metadata?.efootballUser || 'N/A';
+                document.getElementById('profileLeague').textContent = currentUser.metadata?.league || 'None';
             }
         };
 
         window.startOnlineCounter = function() {
             if (onlineInterval) clearInterval(onlineInterval);
-            
+
             onlineInterval = setInterval(async () => {
                 // In demo mode, show random number
                 onlineUsers = Math.floor(Math.random() * 50) + 10;
@@ -1239,7 +1254,7 @@
                     <span>${onlineUsers} players online</span>
                 `;
             }, 30000);
-            
+
             // Set initial value
             onlineUsers = Math.floor(Math.random() * 50) + 10;
             document.getElementById('onlineCounter').innerHTML = `
@@ -1262,48 +1277,76 @@
             }
         };
 
-        window.findOpponent = function() { 
-            window.showToast('Searching for opponents...', 'info'); 
+        window.findOpponent = function() {
+            window.showToast('Searching for opponents...', 'info');
         };
 
-        window.submitResult = function(e) { 
-            e.preventDefault(); 
-            window.showToast('Result submitted', 'success'); 
+        window.submitResult = function(e) {
+            e.preventDefault();
+            window.showToast('Result submitted', 'success');
         };
 
-        window.sendMessage = function() { 
-            window.showToast('Message sent', 'info'); 
+        window.sendMessage = function() {
+            window.showToast('Message sent', 'info');
         };
 
-        window.closeChat = function() { 
+        window.closeChat = function() {
             document.getElementById('chatContainer').classList.remove('active');
         };
 
-        window.toggleMobileMenu = function() { 
-            document.getElementById('mobileNav').classList.toggle('active'); 
+        window.toggleMobileMenu = function() {
+            document.getElementById('mobileNav').classList.toggle('active');
         };
 
-        window.goBack = function() { 
-            window.showDashboard(); 
+        window.goBack = function() {
+            window.showDashboard();
         };
 
-        window.showEditProfile = function() { 
+        window.showEditProfile = function() {
             document.getElementById('editProfileModal').classList.add('active');
             if (currentUser) {
-                document.getElementById('editName').value = currentUser.name || '';
-                document.getElementById('editCountry').value = currentUser.country || '';
-                document.getElementById('editEfootball').value = currentUser.efootball_user || '';
+                document.getElementById('editName').value = currentUser.displayName || '';
+                document.getElementById('editCountry').value = currentUser.metadata?.country || '';
+                document.getElementById('editEfootball').value = currentUser.metadata?.efootballUser || '';
             }
         };
 
-        window.updateProfile = async function(e) { 
+        window.updateProfile = async function(e) {
             e.preventDefault();
-            window.showToast('Profile updated', 'success');
-            window.closeModal('editProfileModal');
+
+            const displayName = document.getElementById('editName').value;
+            const country = document.getElementById('editCountry').value;
+            const efootballUser = document.getElementById('editEfootball').value;
+
+            try {
+                const nhost = await ensureNhost();
+                const { error } = await nhost.auth.updateUser({
+                    displayName,
+                    metadata: {
+                        ...currentUser.metadata,
+                        country,
+                        efootballUser
+                    }
+                });
+
+                if (error) throw error;
+
+                // Update local current user
+                currentUser.displayName = displayName;
+                currentUser.metadata = { ...currentUser.metadata, country, efootballUser };
+
+                window.loadProfileData();
+                window.loadUserProfile();
+
+                window.showToast('Profile updated', 'success');
+                window.closeModal('editProfileModal');
+            } catch (error) {
+                window.showToast(error.message, 'error');
+            }
         };
 
-        window.showAdminModal = function() { 
-            window.showToast('Admin functions coming soon', 'info'); 
+        window.showAdminModal = function() {
+            window.showToast('Admin functions coming soon', 'info');
         };
 
         // Start the app
