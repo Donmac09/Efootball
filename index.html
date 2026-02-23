@@ -955,14 +955,17 @@
 
                     } catch (nhostError) {
                         console.error('Nhost initialization error:', nhostError);
+                        window.showToast('Nhost initialization failed. Switching to demo mode.', 'error');
                         setupDemoMode();
                     }
                 } else {
                     console.error('Nhost SDK not found');
+                    window.showToast('Nhost SDK not found. Switching to demo mode.', 'error');
                     setupDemoMode();
                 }
             } catch (error) {
                 console.error('Failed to initialize app:', error);
+                window.showToast('App initialization failed. Switching to demo mode.', 'error');
                 setupDemoMode();
             }
         }
@@ -1037,6 +1040,7 @@
                 document.getElementById('profilePage').style.display = 'none';
                 document.getElementById('backButton').style.display = 'none';
                 window.startOnlineCounter();
+                window.fetchWinners();
             } else {
                 document.getElementById('heroSection').style.display = 'flex';
                 document.getElementById('dashboard').classList.remove('active');
@@ -1227,9 +1231,12 @@
                 // Use displayName from Nhost user object
                 document.getElementById('playerName').textContent = currentUser.displayName || currentUser.email.split('@')[0];
 
-                // You could also fetch more detailed profile data here via GraphQL if needed
+                // Fetch stats and other data
+                window.fetchUserStats();
+                window.fetchActiveMatches();
             } catch (error) {
                 console.error('Error loading profile:', error);
+                window.showToast('Failed to load profile data', 'error');
             }
         };
 
@@ -1268,11 +1275,189 @@
                 document.getElementById('leagueSection').style.display = 'none';
                 document.getElementById('freeplayMode').classList.add('active');
                 document.getElementById('leagueMode').classList.remove('active');
+                window.fetchLeaderboard();
             } else {
                 document.getElementById('freeplaySection').style.display = 'none';
                 document.getElementById('leagueSection').style.display = 'block';
                 document.getElementById('leagueMode').classList.add('active');
                 document.getElementById('freeplayMode').classList.remove('active');
+                window.fetchLeagues();
+            }
+        };
+
+        window.fetchLeaderboard = async function() {
+            try {
+                const GET_LEADERBOARD = `
+                    query GetLeaderboard {
+                        free_play_leaderboard(order_by: {pts: desc}) {
+                            player_name
+                            country
+                            played
+                            wins
+                            draws
+                            losses
+                            gf
+                            ga
+                            gd
+                            pts
+                        }
+                    }
+                `;
+                const data = await makeGraphQLRequest(GET_LEADERBOARD);
+                const leaderboardBody = document.getElementById('freePlayLeaderboardBody');
+
+                if (data && data.free_play_leaderboard) {
+                    if (data.free_play_leaderboard.length === 0) {
+                        leaderboardBody.innerHTML = '<tr><td colspan="11" style="text-align:center;">No data available</td></tr>';
+                    } else {
+                        leaderboardBody.innerHTML = data.free_play_leaderboard.map((player, index) => `
+                            <tr class="rank-${index + 1}">
+                                <td>${index + 1}</td>
+                                <td>${player.player_name}</td>
+                                <td>${player.country}</td>
+                                <td>${player.played}</td>
+                                <td>${player.wins}</td>
+                                <td>${player.draws}</td>
+                                <td>${player.losses}</td>
+                                <td>${player.gf}</td>
+                                <td>${player.ga}</td>
+                                <td>${player.gd}</td>
+                                <td>${player.pts}</td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch leaderboard:', error);
+            }
+        };
+
+        window.fetchUserStats = async function() {
+            if (!currentUser) return;
+            try {
+                const GET_USER_STATS = `
+                    query GetUserStats($userId: uuid!) {
+                        user_stats_by_pk(user_id: $userId) {
+                            free_play_pts
+                            league_pts
+                            total_matches
+                            goal_difference
+                        }
+                    }
+                `;
+                const data = await makeGraphQLRequest(GET_USER_STATS, { userId: currentUser.id });
+                if (data && data.user_stats_by_pk) {
+                    document.getElementById('freePlayPoints').textContent = data.user_stats_by_pk.free_play_pts;
+                    document.getElementById('leaguePoints').textContent = data.user_stats_by_pk.league_pts;
+                    document.getElementById('totalMatches').textContent = data.user_stats_by_pk.total_matches;
+                    document.getElementById('goalDifference').textContent = data.user_stats_by_pk.goal_difference;
+                }
+            } catch (error) {
+                console.error('Failed to fetch user stats:', error);
+            }
+        };
+
+        window.fetchActiveMatches = async function() {
+            if (!currentUser) return;
+            try {
+                const GET_ACTIVE_MATCHES = `
+                    query GetActiveMatches($userId: uuid!) {
+                        matches(where: {
+                            _or: [{player1_id: {_eq: $userId}}, {player2_id: {_eq: $userId}}],
+                            status: {_eq: "active"}
+                        }) {
+                            id
+                            player1_id
+                            player2_id
+                            player1 { displayName }
+                            player2 { displayName }
+                            created_at
+                        }
+                    }
+                `;
+                const data = await makeGraphQLRequest(GET_ACTIVE_MATCHES, { userId: currentUser.id });
+                const matchesContainer = document.getElementById('activeMatches');
+
+                if (data && data.matches) {
+                    if (data.matches.length === 0) {
+                        matchesContainer.innerHTML = '<p>No active matches</p>';
+                    } else {
+                        matchesContainer.innerHTML = data.matches.map(match => `
+                            <div class="match-card">
+                                <h3>Match vs ${match.player1_id === currentUser.id ? match.player2.displayName : match.player1.displayName}</h3>
+                                <p>Started: ${new Date(match.created_at).toLocaleString()}</p>
+                                <div class="match-actions">
+                                    <button class="btn btn-primary" onclick="window.showResultModal('${match.id}', '${match.player1_id === currentUser.id ? match.player2.displayName : match.player1.displayName}')">Submit Result</button>
+                                    <button class="btn btn-secondary" onclick="window.openChat('${match.id}', '${match.player1_id === currentUser.id ? match.player2.displayName : match.player1.displayName}')">Chat</button>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch active matches:', error);
+            }
+        };
+
+        window.fetchLeagues = async function() {
+            try {
+                const GET_LEAGUES = `
+                    query GetLeagues {
+                        leagues {
+                            id
+                            name
+                            description
+                            participants_count
+                        }
+                    }
+                `;
+                const data = await makeGraphQLRequest(GET_LEAGUES);
+                const leagueList = document.getElementById('leagueList');
+
+                if (data && data.leagues) {
+                    if (data.leagues.length === 0) {
+                        leagueList.innerHTML = '<p>No active leagues available</p>';
+                    } else {
+                        leagueList.innerHTML = data.leagues.map(league => `
+                            <div class="league-card">
+                                <h3>${league.name}</h3>
+                                <p>${league.description}</p>
+                                <p>${league.participants_count} Players</p>
+                                <button class="btn btn-primary" onclick="window.joinLeague('${league.id}')">Join League</button>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch leagues:', error);
+            }
+        };
+
+        window.fetchWinners = async function() {
+            try {
+                const GET_WINNERS = `
+                    query GetWinners {
+                        free_play_phase_winners(limit: 3) {
+                            player_name
+                            rank
+                        }
+                        league_champions(limit: 3) {
+                            player_name
+                            league_name
+                        }
+                    }
+                `;
+                const data = await makeGraphQLRequest(GET_WINNERS);
+                if (data) {
+                    if (data.free_play_phase_winners) {
+                        document.getElementById('freePlayPhaseTop3').innerHTML = data.free_play_phase_winners.map(w => `<div>${w.rank}. ${w.player_name}</div>`).join('') || 'No winners yet';
+                    }
+                    if (data.league_champions) {
+                        document.getElementById('leagueChampions').innerHTML = data.league_champions.map(c => `<div>${c.league_name}: ${c.player_name}</div>`).join('') || 'No champions yet';
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch winners:', error);
             }
         };
 
