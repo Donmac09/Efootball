@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Donmac Efootball - Professional Gaming Platform</title>
     <style>
         * {
@@ -41,15 +41,6 @@
             cursor: pointer;
         }
 
-        .mobile-menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            color: #00d4ff;
-            font-size: 2rem;
-            cursor: pointer;
-        }
-
         .nav-links {
             display: flex;
             gap: 2rem;
@@ -61,39 +52,11 @@
             text-decoration: none;
             cursor: pointer;
             font-weight: 500;
+            transition: color 0.3s;
         }
 
         .nav-links a:hover {
             color: #00d4ff;
-        }
-
-        .mobile-nav {
-            display: none;
-            position: fixed;
-            top: 70px;
-            left: 0;
-            right: 0;
-            background: rgba(10, 15, 30, 0.98);
-            border-bottom: 2px solid #00d4ff;
-            padding: 1rem;
-            z-index: 999;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .mobile-nav.active {
-            display: flex;
-        }
-
-        .mobile-nav a, .mobile-nav button {
-            width: 100%;
-            padding: 1rem;
-            background: rgba(255,255,255,0.05);
-            border: none;
-            color: white;
-            border-radius: 10px;
-            text-align: center;
-            font-size: 1.1rem;
         }
 
         .btn {
@@ -127,22 +90,31 @@
             color: #0a0f1e;
         }
 
-        .btn-back {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        .btn-danger {
+            background: #dc3545;
             color: white;
-            padding: 0.5rem 1rem;
-            margin-bottom: 1rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            cursor: pointer;
-            border-radius: 20px;
         }
 
-        .btn-back::before {
-            content: "←";
-            font-size: 1.2rem;
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #0a0f1e;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
         }
 
         .container {
@@ -150,31 +122,6 @@
             margin: 0 auto;
             padding: 2rem 5%;
             margin-top: 80px;
-        }
-
-        .online-counter {
-            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(157, 78, 221, 0.2));
-            border: 1px solid #00d4ff;
-            border-radius: 50px;
-            padding: 0.5rem 1.5rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .online-dot {
-            width: 10px;
-            height: 10px;
-            background: #4caf50;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.2); }
-            100% { opacity: 1; transform: scale(1); }
         }
 
         .hero {
@@ -191,6 +138,12 @@
             background: linear-gradient(135deg, #00d4ff, #9d4edd);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: #b0b0b0;
         }
 
         .dashboard {
@@ -211,47 +164,54 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin: 1.5rem 0;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
         }
 
         .stat-card {
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 1rem;
+            border-radius: 20px;
+            padding: 1.5rem;
             text-align: center;
         }
 
         .stat-card h3 {
             color: #b0b0b0;
-            font-size: 0.9rem;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
         }
 
         .stat-card .value {
-            font-size: 1.8rem;
+            font-size: 2.5rem;
             color: #00d4ff;
             font-weight: bold;
         }
 
         .mode-selection {
             display: flex;
-            gap: 1rem;
+            gap: 2rem;
             justify-content: center;
-            margin: 1.5rem 0;
-            flex-wrap: wrap;
+            margin: 2rem 0;
         }
 
         .mode-card {
             background: rgba(255, 255, 255, 0.08);
             border: 2px solid rgba(0, 212, 255, 0.3);
-            border-radius: 15px;
-            padding: 1.5rem;
+            border-radius: 20px;
+            padding: 2rem;
             text-align: center;
             cursor: pointer;
             flex: 1;
-            min-width: 150px;
+            max-width: 300px;
+            transition: all 0.3s;
+        }
+
+        .mode-card:hover {
+            border-color: #00d4ff;
+            transform: translateY(-5px);
+            background: rgba(0, 212, 255, 0.15);
         }
 
         .mode-card.active {
@@ -261,20 +221,21 @@
 
         .mode-card h3 {
             color: #00d4ff;
+            margin-bottom: 0.5rem;
         }
 
         .match-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
             margin-top: 1rem;
         }
 
         .match-card {
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(0, 212, 255, 0.2);
-            border-radius: 12px;
-            padding: 1.2rem;
+            border-radius: 15px;
+            padding: 1.5rem;
         }
 
         .match-card h3 {
@@ -284,14 +245,14 @@
 
         .match-actions {
             display: flex;
-            gap: 0.8rem;
+            gap: 1rem;
             margin-top: 1rem;
-            flex-wrap: wrap;
         }
 
         .match-actions button {
             flex: 1;
-            padding: 0.6rem;
+            padding: 0.5rem;
+            font-size: 0.9rem;
         }
 
         .chat-container {
@@ -304,6 +265,7 @@
             border-radius: 20px;
             display: none;
             z-index: 2000;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
         }
 
         .chat-container.active {
@@ -313,22 +275,34 @@
         .chat-header {
             padding: 1rem;
             background: linear-gradient(135deg, #00d4ff, #9d4edd);
+            color: white;
             border-radius: 18px 18px 0 0;
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        .chat-header button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
         }
 
         .chat-messages {
-            height: 250px;
+            height: 300px;
             overflow-y: auto;
             padding: 1rem;
         }
 
         .message {
-            margin-bottom: 0.8rem;
-            padding: 0.6rem;
-            border-radius: 12px;
+            margin-bottom: 1rem;
+            padding: 0.8rem;
+            border-radius: 15px;
             max-width: 80%;
+            word-wrap: break-word;
         }
 
         .message.sent {
@@ -339,41 +313,83 @@
 
         .message.received {
             background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .message small {
+            display: block;
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 0.3rem;
         }
 
         .chat-input {
             display: flex;
-            padding: 0.8rem;
+            padding: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
             gap: 0.5rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
         }
 
         .chat-input input {
             flex: 1;
-            padding: 0.6rem;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 8px;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
             color: white;
+        }
+
+        .chat-input input:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+
+        .chat-input button {
+            padding: 0.8rem 1.5rem;
+            background: #00d4ff;
+            border: none;
+            border-radius: 10px;
+            color: #0a0f1e;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .chat-input button:hover {
+            background: #00b8e6;
         }
 
         .league-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin: 1.5rem 0;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
         }
 
         .league-card {
-            background: rgba(255,255,255,0.08);
-            border: 2px solid rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
             text-align: center;
+            transition: all 0.3s;
+        }
+
+        .league-card:hover {
+            border-color: #00d4ff;
+            transform: translateY(-5px);
         }
 
         .league-card h3 {
             color: #00d4ff;
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        .league-card .teams {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            color: white;
         }
 
         .modal {
@@ -383,11 +399,10 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.95);
+            background: rgba(0, 0, 0, 0.95);
             z-index: 3000;
             justify-content: center;
             align-items: center;
-            padding: 1rem;
         }
 
         .modal.active {
@@ -397,165 +412,317 @@
         .modal-content {
             background: #1a1f30;
             border: 2px solid #00d4ff;
-            border-radius: 20px;
-            padding: 1.5rem;
-            max-width: 500px;
-            width: 100%;
+            border-radius: 25px;
+            padding: 2.5rem;
+            max-width: 1000px;
+            width: 90%;
             max-height: 85vh;
             overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.3);
         }
 
         .modal-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 1.5rem;
+            align-items: center;
+            margin-bottom: 2rem;
         }
 
         .modal-header h2 {
             color: #00d4ff;
+            font-size: 1.8rem;
         }
 
         .close-btn {
             background: none;
             border: none;
             color: white;
-            font-size: 1.8rem;
+            font-size: 2rem;
             cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #00d4ff;
         }
 
         .form-group {
-            margin-bottom: 1.2rem;
+            margin-bottom: 1.5rem;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 0.3rem;
+            margin-bottom: 0.5rem;
             color: #00d4ff;
+            font-weight: 500;
+            font-size: 1rem;
         }
 
         .form-group input,
-        .form-group select {
+        .form-group select,
+        .form-group textarea {
             width: 100%;
-            padding: 0.8rem;
-            background: rgba(255,255,255,0.1);
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 10px;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #00d4ff;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .form-group select option {
+            background: #1a1f30;
             color: white;
         }
 
-        .country-input-container {
-            position: relative;
+        .country-search {
+            margin-bottom: 0.5rem;
         }
 
-        .suggestions-list {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            max-height: 150px;
+        .search-input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+
+        .country-list {
+            max-height: 200px;
             overflow-y: auto;
-            background: #1a1f30;
+            background: rgba(0, 0, 0, 0.9);
             border: 1px solid #00d4ff;
-            border-radius: 0 0 10px 10px;
+            border-radius: 12px;
             display: none;
-            z-index: 1000;
+            position: absolute;
+            width: 90%;
+            z-index: 100;
         }
 
-        .suggestions-list.active {
+        .country-list.active {
             display: block;
         }
 
-        .suggestion-item {
-            padding: 0.6rem 1rem;
+        .country-item {
+            padding: 0.8rem 1rem;
             cursor: pointer;
+            transition: background 0.3s;
+            color: white;
         }
 
-        .suggestion-item:hover {
-            background: rgba(0,212,255,0.2);
+        .country-item:hover {
+            background: rgba(0, 212, 255, 0.2);
         }
 
         .leaderboard-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.85rem;
+            margin-top: 1rem;
         }
 
         .leaderboard-table th {
-            background: rgba(0,212,255,0.2);
-            padding: 0.8rem;
+            background: rgba(0, 212, 255, 0.2);
+            padding: 1rem;
             text-align: left;
+            color: white;
+            font-weight: 600;
         }
 
         .leaderboard-table td {
-            padding: 0.8rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .rank-1 { background: linear-gradient(90deg, rgba(255,215,0,0.2), transparent); }
-        .rank-2 { background: linear-gradient(90deg, rgba(192,192,192,0.2), transparent); }
-        .rank-3 { background: linear-gradient(90deg, rgba(205,127,50,0.2), transparent); }
+        .leaderboard-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .rank-1 {
+            background: linear-gradient(90deg, rgba(255, 215, 0, 0.2), transparent);
+        }
+
+        .rank-2 {
+            background: linear-gradient(90deg, rgba(192, 192, 192, 0.2), transparent);
+        }
+
+        .rank-3 {
+            background: linear-gradient(90deg, rgba(205, 127, 50, 0.2), transparent);
+        }
 
         .winner-section {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 1rem;
-            margin: 1.5rem 0;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
         }
 
         .winner-card {
-            background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(157,78,221,0.2));
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(157, 78, 221, 0.2));
             border: 2px solid #00d4ff;
-            border-radius: 15px;
-            padding: 1.2rem;
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: center;
         }
 
         .winner-card h3 {
             color: #00d4ff;
             margin-bottom: 1rem;
+            font-size: 1.3rem;
         }
 
         .podium {
             display: flex;
             justify-content: center;
             align-items: flex-end;
-            gap: 0.5rem;
-            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .podium-place {
+            text-align: center;
+            flex: 1;
+        }
+
+        .podium-1 { order: 2; }
+        .podium-2 { order: 1; }
+        .podium-3 { order: 3; }
+
+        .podium-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid;
+            border-radius: 15px;
+            padding: 1rem;
         }
 
         .podium-1 .podium-card {
             border-color: gold;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), transparent);
             transform: scale(1.1);
         }
-        .podium-2 .podium-card { border-color: silver; }
-        .podium-3 .podium-card { border-color: #cd7f32; }
 
-        .podium-card {
-            background: rgba(255,255,255,0.1);
-            border: 2px solid;
-            border-radius: 10px;
-            padding: 0.8rem;
-            min-width: 100px;
-            text-align: center;
+        .podium-2 .podium-card {
+            border-color: silver;
+            background: linear-gradient(135deg, rgba(192, 192, 192, 0.2), transparent);
+        }
+
+        .podium-3 .podium-card {
+            border-color: #cd7f32;
+            background: linear-gradient(135deg, rgba(205, 127, 50, 0.2), transparent);
         }
 
         .podium-rank {
-            font-size: 1.2rem;
+            font-size: 1.5rem;
             font-weight: bold;
-            margin-bottom: 0.3rem;
+            margin-bottom: 0.5rem;
         }
 
         .podium-1 .podium-rank { color: gold; }
         .podium-2 .podium-rank { color: silver; }
         .podium-3 .podium-rank { color: #cd7f32; }
 
-        .ai-badge {
-            background: rgba(0,212,255,0.2);
-            border: 1px solid #00d4ff;
+        .tab-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            padding: 0.8rem 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .tab-button:hover {
+            background: rgba(0, 212, 255, 0.2);
+        }
+
+        .tab-button.active {
+            background: #00d4ff;
+            color: #0a0f1e;
+            border-color: #00d4ff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .admin-controls {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .admin-controls button {
+            padding: 0.3rem 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
             border-radius: 20px;
-            padding: 0.4rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: rgba(40, 167, 69, 0.2);
+            color: #28a745;
+            border: 1px solid #28a745;
+        }
+
+        .status-suspended {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid #ffc107;
+        }
+
+        .status-blocked {
+            background: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+            border: 1px solid #dc3545;
+        }
+
+        .ai-badge {
+            background: rgba(0, 212, 255, 0.2);
+            border: 1px solid #00d4ff;
+            border-radius: 30px;
+            padding: 0.5rem 1.5rem;
             display: inline-flex;
             align-items: center;
-            gap: 0.3rem;
+            gap: 0.5rem;
+            color: #00d4ff;
+            font-weight: 600;
             margin: 1rem 0;
         }
 
@@ -565,107 +732,106 @@
             left: 20px;
             background: #1a1f30;
             border-left: 4px solid #00d4ff;
-            border-radius: 8px;
-            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            padding: 1rem 2rem;
+            color: white;
             animation: slideIn 0.3s ease;
             z-index: 4000;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
         }
+
+        .toast.success { border-left-color: #28a745; }
+        .toast.error { border-left-color: #dc3545; }
+        .toast.warning { border-left-color: #ffc107; }
 
         @keyframes slideIn {
-            from { transform: translateX(-100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        .forgot-password-link {
-            text-align: center;
-            margin-top: 0.5rem;
-        }
-
-        .forgot-password-link a {
-            color: #00d4ff;
-            cursor: pointer;
-            font-size: 0.9rem;
-            text-decoration: none;
-        }
-
-        .forgot-password-link a:hover {
-            text-decoration: underline;
-        }
-
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: #00d4ff;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 10px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 
         @media (max-width: 768px) {
-            .mobile-menu-btn { display: block; }
-            .nav-links { display: none; }
-            .stats-grid { grid-template-columns: 1fr; }
-            .mode-selection { flex-direction: column; }
-            .chat-container { width: 100%; bottom: 0; right: 0; }
+            .nav-links {
+                display: none;
+            }
+            
+            .mode-selection {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .mode-card {
+                width: 100%;
+            }
+            
+            .chat-container {
+                width: 100%;
+                bottom: 0;
+                right: 0;
+                border-radius: 20px 20px 0 0;
+            }
+            
+            .podium {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .podium-card {
+                width: 100%;
+            }
+            
+            .leaderboard-table {
+                font-size: 0.85rem;
+            }
+            
+            .leaderboard-table th,
+            .leaderboard-table td {
+                padding: 0.5rem;
+            }
         }
     </style>
-    <!-- Nhost SDK -->
-    <script type="module">
-        import { NhostClient } from 'https://cdn.jsdelivr.net/npm/@nhost/nhost-js@2.1.1/+esm'
-        window.NhostClient = NhostClient
-    </script>
 </head>
 <body>
+    <!-- Navbar -->
     <nav class="navbar">
-        <span class="logo" onclick="window.showHome()">Donmac Efootball</span>
-        <button class="mobile-menu-btn" onclick="window.toggleMobileMenu()">☰</button>
+        <span class="logo" onclick="showHome()">Donmac Efootball</span>
         <div class="nav-links">
-            <a onclick="window.showHome()">Home</a>
-            <a onclick="window.showFreePlay()">Free Play</a>
-            <a onclick="window.showLeagues()">Leagues</a>
-            <a onclick="window.showLeaderboard()">Leaderboard</a>
-            <a onclick="window.showProfile()">Profile</a>
-            <button class="btn btn-primary" id="loginBtn" onclick="window.showLoginModal()">Login</button>
-            <button class="btn btn-secondary" id="registerBtn" onclick="window.showRegisterModal()">Register</button>
-            <button class="btn btn-secondary" id="logoutBtn" onclick="window.logout()" style="display: none;">Logout</button>
-            <button class="btn btn-primary" id="adminBtn" onclick="window.showAdminModal()" style="display: none;">Admin</button>
+            <a onclick="showHome()">Home</a>
+            <a onclick="showFreePlay()">Free Play</a>
+            <a onclick="showLeagues()">Leagues</a>
+            <a onclick="showLeaderboard()">Leaderboard</a>
+            <a onclick="showProfile()">Profile</a>
+            <button class="btn btn-primary" id="loginBtn" onclick="showLoginModal()">Login</button>
+            <button class="btn btn-secondary" id="registerBtn" onclick="showRegisterModal()">Register</button>
+            <button class="btn btn-secondary" id="logoutBtn" onclick="logout()" style="display: none;">Logout</button>
+            <button class="btn btn-primary" id="adminBtn" onclick="showAdminModal()" style="display: none; margin-left: 1rem;">Admin Panel</button>
         </div>
     </nav>
 
-    <div class="mobile-nav" id="mobileNav">
-        <a onclick="window.showHome(); window.toggleMobileMenu()">🏠 Home</a>
-        <a onclick="window.showFreePlay(); window.toggleMobileMenu()">⚽ Free Play</a>
-        <a onclick="window.showLeagues(); window.toggleMobileMenu()">🏆 Leagues</a>
-        <a onclick="window.showLeaderboard(); window.toggleMobileMenu()">📊 Leaderboard</a>
-        <a onclick="window.showProfile(); window.toggleMobileMenu()">👤 Profile</a>
-        <button class="btn btn-primary" id="mobileLoginBtn" onclick="window.showLoginModal(); window.toggleMobileMenu()">Login</button>
-        <button class="btn btn-secondary" id="mobileRegisterBtn" onclick="window.showRegisterModal(); window.toggleMobileMenu()">Register</button>
-        <button class="btn btn-secondary" id="mobileLogoutBtn" onclick="window.logout(); window.toggleMobileMenu()" style="display: none;">Logout</button>
-    </div>
-
+    <!-- Main Container -->
     <div class="container" id="mainContent">
-        <button class="btn-back" id="backButton" onclick="window.goBack()" style="display: none;"></button>
-
+        <!-- Hero Section -->
         <div id="heroSection" class="hero">
             <div class="hero-content">
                 <h1>Welcome to Donmac Efootball</h1>
-                <p>Join competitive leagues and climb the ranks!</p>
-                <button class="btn btn-primary" onclick="window.showRegisterModal()">Get Started</button>
+                <p>Join competitive leagues or play friendly matches. Climb the ranks and become a champion!</p>
+                <button class="btn btn-primary" onclick="showRegisterModal()">Get Started</button>
             </div>
         </div>
 
+        <!-- Dashboard -->
         <div id="dashboard" class="dashboard">
             <div class="welcome-card">
                 <h2>Welcome, <span id="playerName"></span>!</h2>
-                <p id="playerStatus"></p>
+                <p id="playerStatus" style="color: #b0b0b0;"></p>
             </div>
 
+            <!-- Phase Winners Display -->
             <div class="winner-section">
                 <div class="winner-card">
                     <h3>🏆 Current Free Play Phase</h3>
@@ -678,31 +844,41 @@
             </div>
 
             <div class="stats-grid">
-                <div class="stat-card"><h3>Free Play Pts</h3><div class="value" id="freePlayPoints">0</div></div>
-                <div class="stat-card"><h3>League Pts</h3><div class="value" id="leaguePoints">0</div></div>
-                <div class="stat-card"><h3>Matches</h3><div class="value" id="totalMatches">0</div></div>
-                <div class="stat-card"><h3>Goal Diff</h3><div class="value" id="goalDifference">0</div></div>
+                <div class="stat-card">
+                    <h3>Free Play Points</h3>
+                    <div class="value" id="freePlayPoints">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>League Points</h3>
+                    <div class="value" id="leaguePoints">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Matches</h3>
+                    <div class="value" id="totalMatches">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Goal Difference</h3>
+                    <div class="value" id="goalDifference">0</div>
+                </div>
             </div>
 
+            <!-- Mode Selection -->
             <div class="mode-selection">
-                <div class="mode-card" onclick="window.switchMode('freeplay')" id="freeplayMode">
+                <div class="mode-card" onclick="switchMode('freeplay')" id="freeplayMode">
                     <h3>⚽ Free Play</h3>
-                    <p>Casual matches</p>
+                    <p>Casual matches, play anytime</p>
                 </div>
-                <div class="mode-card" onclick="window.switchMode('league')" id="leagueMode">
+                <div class="mode-card" onclick="switchMode('league')" id="leagueMode">
                     <h3>🏆 League Mode</h3>
-                    <p>Competitive</p>
+                    <p>Competitive league matches</p>
                 </div>
             </div>
 
+            <!-- Free Play Section -->
             <div id="freeplaySection">
                 <div class="welcome-card">
-                    <div class="online-counter" id="onlineCounter">
-                        <span class="online-dot"></span>
-                        <span>Loading players online...</span>
-                    </div>
                     <h3>Find Opponent</h3>
-                    <button class="btn btn-primary" onclick="window.findOpponent()" style="width:100%;">🔍 Search for Opponent</button>
+                    <button class="btn btn-primary" onclick="findOpponent()">🔍 Search for Opponent</button>
                 </div>
 
                 <div class="welcome-card">
@@ -710,843 +886,1858 @@
                     <div id="activeMatches"></div>
                 </div>
 
+                <!-- Free Play Leaderboard -->
                 <div class="welcome-card">
                     <h3>Free Play Leaderboard</h3>
-                    <div style="overflow-x:auto;">
-                        <table class="leaderboard-table">
-                            <thead><tr><th>Rank</th><th>Player</th><th>Country</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead>
-                            <tbody id="freePlayLeaderboardBody"></tbody>
-                        </table>
-                    </div>
+                    <table class="leaderboard-table" id="freePlayLeaderboard">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Player</th>
+                                <th>Country</th>
+                                <th>P</th>
+                                <th>W</th>
+                                <th>D</th>
+                                <th>L</th>
+                                <th>GF</th>
+                                <th>GA</th>
+                                <th>GD</th>
+                                <th>Pts</th>
+                            </tr>
+                        </thead>
+                        <tbody id="freePlayLeaderboardBody"></tbody>
+                    </table>
                 </div>
             </div>
 
-            <div id="leagueSection" style="display:none;">
+            <!-- League Section -->
+            <div id="leagueSection" style="display: none;">
                 <div class="welcome-card">
                     <h3>Available Leagues</h3>
                     <div class="league-grid" id="leagueList"></div>
                 </div>
-                <div id="leagueStandings" style="display:none;">
+
+                <!-- League Standings -->
+                <div id="leagueStandings" style="display: none;">
                     <div class="welcome-card">
                         <h3>Your League Standings</h3>
-                        <div style="overflow-x:auto;">
-                            <table class="leaderboard-table">
-                                <thead><tr><th>Rank</th><th>Player</th><th>Country</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead>
-                                <tbody id="leagueLeaderboardBody"></tbody>
-                            </table>
-                        </div>
+                        <table class="leaderboard-table" id="leagueLeaderboard">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Player</th>
+                                    <th>Country</th>
+                                    <th>P</th>
+                                    <th>W</th>
+                                    <th>D</th>
+                                    <th>L</th>
+                                    <th>GF</th>
+                                    <th>GA</th>
+                                    <th>GD</th>
+                                    <th>Pts</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leagueLeaderboardBody"></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="profilePage" style="display:none;">
-            <button class="btn-back" onclick="window.showDashboard()">Back</button>
+        <!-- Profile Page -->
+        <div id="profilePage" style="display: none;">
             <div class="welcome-card">
                 <h2>Player Profile</h2>
                 <div class="stats-grid">
-                    <div class="stat-card"><h3>Name</h3><div class="value" id="profileName"></div></div>
-                    <div class="stat-card"><h3>Country</h3><div class="value" id="profileCountry"></div></div>
-                    <div class="stat-card"><h3>eFootball User</h3><div class="value" id="profileEfootball"></div></div>
-                    <div class="stat-card"><h3>League</h3><div class="value" id="profileLeague"></div></div>
+                    <div class="stat-card">
+                        <h3>Name</h3>
+                        <div class="value" id="profileName"></div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Country</h3>
+                        <div class="value" id="profileCountry"></div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>eFootball User</h3>
+                        <div class="value" id="profileEfootball"></div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>League</h3>
+                        <div class="value" id="profileLeague">Not in league</div>
+                    </div>
                 </div>
-                <button class="btn btn-primary" onclick="window.showEditProfile()">Edit Profile</button>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Free Play Stats</h3>
+                        <div id="profileFreePlayStats"></div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>League Stats</h3>
+                        <div id="profileLeagueStats"></div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="showEditProfile()" style="margin-top: 1rem;">Edit Profile</button>
             </div>
         </div>
     </div>
 
     <!-- Login Modal -->
     <div class="modal" id="loginModal">
-        <div class="modal-content">
-            <div class="modal-header"><h2>Login</h2><button class="close-btn" onclick="window.closeModal('loginModal')">&times;</button></div>
-            <form onsubmit="window.handleLogin(event)">
-                <div class="form-group"><label>Email</label><input type="email" id="loginEmail" required></div>
-                <div class="form-group"><label>Password</label><input type="password" id="loginPassword" required></div>
-                <button type="submit" class="btn btn-primary" style="width:100%;">Login</button>
-            </form>
-            <div class="forgot-password-link">
-                <a onclick="window.showForgotPasswordModal()">Forgot Password?</a>
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Login to Donmac</h2>
+                <button class="close-btn" onclick="closeModal('loginModal')">&times;</button>
             </div>
-            <p style="text-align:center; margin-top:1rem;">Don't have an account? <a onclick="window.switchToRegister()" style="color:#00d4ff;cursor:pointer;">Register</a></p>
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="loginEmail" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+            </form>
+            <p style="text-align: center; margin-top: 1.5rem; color: #b0b0b0;">
+                Don't have an account? 
+                <a onclick="switchToRegister()" style="color: #00d4ff; cursor: pointer; text-decoration: none;">Register here</a>
+            </p>
         </div>
     </div>
 
     <!-- Register Modal -->
     <div class="modal" id="registerModal">
-        <div class="modal-content">
-            <div class="modal-header"><h2>Register</h2><button class="close-btn" onclick="window.closeModal('registerModal')">&times;</button></div>
-            <form onsubmit="window.handleRegister(event)">
-                <div class="form-group"><label>Full Name</label><input type="text" id="regName" required></div>
-                <div class="form-group"><label>Email</label><input type="email" id="regEmail" required></div>
-                <div class="form-group"><label>Password</label><input type="password" id="regPassword" required></div>
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Create Account</h2>
+                <button class="close-btn" onclick="closeModal('registerModal')">&times;</button>
+            </div>
+            <form onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="regName" placeholder="Enter your full name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="regEmail" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="regPassword" placeholder="Choose a password" required>
+                </div>
                 <div class="form-group">
                     <label>Country</label>
-                    <div class="country-input-container">
-                        <input type="text" id="regCountry" placeholder="Type your country" oninput="window.filterCountries(this.value)" required>
-                        <div id="countrySuggestions" class="suggestions-list"></div>
+                    <div class="country-search">
+                        <input type="text" class="search-input" id="countrySearch" placeholder="Search for your country..." onkeyup="filterCountries()" onclick="showCountryList()">
+                        <div class="country-list" id="countryList"></div>
                     </div>
+                    <input type="hidden" id="regCountry" required>
                 </div>
-                <div class="form-group"><label>eFootball Username</label><input type="text" id="regEfootball" required></div>
-                <button type="submit" class="btn btn-primary" style="width:100%;">Register</button>
+                <div class="form-group">
+                    <label>eFootball Username</label>
+                    <input type="text" id="regEfootball" placeholder="Your in-game username" required>
+                </div>
+                <p style="color: #b0b0b0; margin: 1rem 0;">You can join a league later from the Leagues section.</p>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Create Account</button>
             </form>
-            <p style="text-align:center; margin-top:1rem;">Already have an account? <a onclick="window.switchToLogin()" style="color:#00d4ff;cursor:pointer;">Login</a></p>
+            <p style="text-align: center; margin-top: 1.5rem; color: #b0b0b0;">
+                Already have an account? 
+                <a onclick="switchToLogin()" style="color: #00d4ff; cursor: pointer; text-decoration: none;">Login here</a>
+            </p>
         </div>
     </div>
 
-    <!-- Forgot Password Modal -->
-    <div class="modal" id="forgotPasswordModal">
-        <div class="modal-content">
-            <div class="modal-header"><h2>Reset Password</h2><button class="close-btn" onclick="window.closeModal('forgotPasswordModal')">&times;</button></div>
-            <form onsubmit="window.handleForgotPassword(event)">
-                <div class="form-group"><label>Email</label><input type="email" id="forgotEmail" placeholder="Enter your email" required></div>
-                <button type="submit" class="btn btn-primary" style="width:100%;">Send Reset Link</button>
-            </form>
-            <p style="text-align:center; margin-top:1rem;">Remember your password? <a onclick="window.switchToLogin()" style="color:#00d4ff;cursor:pointer;">Login</a></p>
-        </div>
-    </div>
-
+    <!-- Result Modal -->
     <div class="modal" id="resultModal">
-        <div class="modal-content">
-            <div class="modal-header"><h2>Submit Result</h2><button class="close-btn" onclick="window.closeModal('resultModal')">&times;</button></div>
-            <form onsubmit="window.submitResult(event)">
-                <div class="form-group"><label>Match ID</label><input type="text" id="resultMatchId" readonly></div>
-                <div class="form-group"><label>Opponent</label><input type="text" id="resultOpponent" readonly></div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-                    <div class="form-group"><label>Your Score</label><input type="number" id="yourScore" min="0" required></div>
-                    <div class="form-group"><label>Opponent Score</label><input type="number" id="opponentScore" min="0" required></div>
-                </div>
-                <div class="ai-badge">🤖 AI VERIFICATION ACTIVE</div>
-                <div class="form-group"><label>Screenshot</label><input type="file" id="matchScreenshot" accept="image/*" required></div>
-                <div class="form-group"><label>Video (Optional)</label><input type="file" id="matchVideo" accept="video/*"></div>
-                <button type="submit" class="btn btn-primary" style="width:100%;">Submit</button>
-            </form>
-        </div>
-    </div>
-
-    <div class="modal" id="editProfileModal">
-        <div class="modal-content">
-            <div class="modal-header"><h2>Edit Profile</h2><button class="close-btn" onclick="window.closeModal('editProfileModal')">&times;</button></div>
-            <form onsubmit="window.updateProfile(event)">
-                <div class="form-group"><label>Full Name</label><input type="text" id="editName" required></div>
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Submit Match Result</h2>
+                <button class="close-btn" onclick="closeModal('resultModal')">&times;</button>
+            </div>
+            <form onsubmit="submitResult(event)">
                 <div class="form-group">
-                    <label>Country</label>
-                    <div class="country-input-container">
-                        <input type="text" id="editCountry" oninput="window.filterEditCountries(this.value)" required>
-                        <div id="editCountrySuggestions" class="suggestions-list"></div>
+                    <label>Match ID</label>
+                    <input type="text" id="resultMatchId" readonly style="background: rgba(255,255,255,0.05);">
+                </div>
+                
+                <div class="form-group">
+                    <label>Opponent</label>
+                    <input type="text" id="resultOpponent" readonly style="background: rgba(255,255,255,0.05);">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Your Score</label>
+                        <input type="number" id="yourScore" min="0" max="20" placeholder="Goals" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Opponent Score</label>
+                        <input type="number" id="opponentScore" min="0" max="20" placeholder="Goals" required>
                     </div>
                 </div>
-                <div class="form-group"><label>eFootball Username</label><input type="text" id="editEfootball" required></div>
-                <button type="submit" class="btn btn-primary" style="width:100%;">Update</button>
+
+                <div class="ai-badge">
+                    <span>🤖 AI VERIFICATION ACTIVE</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Match Result Screenshot</label>
+                    <input type="file" id="matchScreenshot" accept="image/*" required>
+                    <small style="color: #b0b0b0;">Upload a clear screenshot of the final match result</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Match Video (Optional)</label>
+                    <input type="file" id="matchVideo" accept="video/*">
+                    <small style="color: #b0b0b0;">Upload video evidence if available</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Submit for AI Verification</button>
             </form>
         </div>
     </div>
 
-    <div class="chat-container" id="chatContainer">
-        <div class="chat-header"><span>Chat with <span id="chatOpponent"></span></span><button onclick="window.closeChat()">✕</button></div>
-        <div class="chat-messages" id="chatMessages"></div>
-        <div class="chat-input"><input type="text" id="chatInput" placeholder="Type..."><button onclick="window.sendMessage()">Send</button></div>
+    <!-- Admin Modal -->
+    <div class="modal" id="adminModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Admin Dashboard</h2>
+                <button class="close-btn" onclick="closeModal('adminModal')">&times;</button>
+            </div>
+            
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="switchAdminTab('players')">Players</button>
+                <button class="tab-button" onclick="switchAdminTab('matches')">Matches</button>
+                <button class="tab-button" onclick="switchAdminTab('leagues')">Leagues</button>
+                <button class="tab-button" onclick="switchAdminTab('phases')">Phases</button>
+                <button class="tab-button" onclick="switchAdminTab('points')">Deduct Points</button>
+            </div>
+
+            <!-- Players Tab -->
+            <div id="adminPlayersTab" class="tab-content active">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Country</th>
+                            <th>Status</th>
+                            <th>Free Pts</th>
+                            <th>League Pts</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminPlayersBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Matches Tab -->
+            <div id="adminMatchesTab" class="tab-content">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Match ID</th>
+                            <th>Players</th>
+                            <th>Result</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminMatchesBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Leagues Tab -->
+            <div id="adminLeaguesTab" class="tab-content">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>League</th>
+                            <th>Players</th>
+                            <th>Status</th>
+                            <th>Current Leader</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminLeaguesBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Phases Tab -->
+            <div id="adminPhasesTab" class="tab-content">
+                <div class="form-group">
+                    <label>Current Free Play Phase</label>
+                    <input type="text" id="currentPhase" value="Phase 1" readonly style="background: rgba(255,255,255,0.05);">
+                </div>
+                
+                <div style="margin: 2rem 0;">
+                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Previous Phase Winners</h3>
+                    <div id="phaseWinnersList"></div>
+                </div>
+
+                <button class="btn btn-primary" onclick="endFreePlayPhase()">End Current Phase & Declare Winners</button>
+                <button class="btn btn-secondary" onclick="resetAllPhases()" style="margin-left: 1rem;">Reset All Phases</button>
+            </div>
+
+            <!-- Deduct Points Tab -->
+            <div id="adminPointsTab" class="tab-content">
+                <div class="form-group">
+                    <label>Select Player</label>
+                    <select id="pointsPlayerSelect" onchange="loadPlayerForDeduction()">
+                        <option value="">Choose a player...</option>
+                    </select>
+                </div>
+
+                <div id="deductionForm" style="display: none;">
+                    <div class="form-group">
+                        <label>Player Name</label>
+                        <input type="text" id="pointsPlayerName" readonly style="background: rgba(255,255,255,0.05);">
+                    </div>
+                    <div class="form-group">
+                        <label>Current Free Play Points</label>
+                        <input type="text" id="pointsCurrentFree" readonly style="background: rgba(255,255,255,0.05);">
+                    </div>
+                    <div class="form-group">
+                        <label>Current League Points</label>
+                        <input type="text" id="pointsCurrentLeague" readonly style="background: rgba(255,255,255,0.05);">
+                    </div>
+                    <div class="form-group">
+                        <label>Points Type</label>
+                        <select id="pointsType">
+                            <option value="free">Free Play Points</option>
+                            <option value="league">League Points</option>
+                            <option value="both">Both</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount to Deduct</label>
+                        <input type="number" id="pointsAmount" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Reason for Deduction</label>
+                        <textarea id="pointsReason" rows="3" placeholder="Enter reason..." required></textarea>
+                    </div>
+                    <button class="btn btn-danger" onclick="deductPoints()">Deduct Points</button>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <!-- Edit Profile Modal -->
+    <div class="modal" id="editProfileModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Edit Profile</h2>
+                <button class="close-btn" onclick="closeModal('editProfileModal')">&times;</button>
+            </div>
+            <form onsubmit="updateProfile(event)">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="editName" required>
+                </div>
+                <div class="form-group">
+                    <label>Country</label>
+                    <div class="country-search">
+                        <input type="text" class="search-input" id="editCountrySearch" placeholder="Search for your country..." onkeyup="filterEditCountries()" onclick="showEditCountryList()">
+                        <div class="country-list" id="editCountryList"></div>
+                    </div>
+                    <input type="hidden" id="editCountry" required>
+                </div>
+                <div class="form-group">
+                    <label>eFootball Username</label>
+                    <input type="text" id="editEfootball" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Update Profile</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Deduct Points Modal (Legacy) -->
+    <div class="modal" id="deductPointsModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Deduct Points</h2>
+                <button class="close-btn" onclick="closeModal('deductPointsModal')">&times;</button>
+            </div>
+            <form onsubmit="deductPointsFromModal(event)">
+                <input type="hidden" id="deductPlayerId">
+                <div class="form-group">
+                    <label>Player</label>
+                    <input type="text" id="deductPlayerName" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Points to Deduct</label>
+                    <input type="number" id="deductAmount" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Reason</label>
+                    <textarea id="deductReason" rows="3" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-danger" style="width: 100%;">Deduct Points</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="chat-container" id="chatContainer">
+        <div class="chat-header">
+            <span>💬 Chat with <span id="chatOpponent"></span></span>
+            <button onclick="closeChat()">✕</button>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Type a message..." onkeypress="if(event.key === 'Enter') sendMessage()">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
     <div id="toastContainer"></div>
 
     <script>
-        // Configuration
-        const ADMIN_EMAIL = 'donmacdatahub@gmail.com';
-
-        // Global variables
-        let nhost = null;
-        let currentUser = null;
-        let currentChatMatch = null;
-        let onlineInterval;
-        let onlineUsers = 0;
-        let initResolve;
-        let initReject;
-
-        // Create a promise that resolves when nhost is initialized
-        const initPromise = new Promise((resolve, reject) => {
-            initResolve = resolve;
-            initReject = reject;
-        });
-
-        // Countries list
+        // All countries that play eFootball
         const COUNTRIES = [
-            "Argentina", "Australia", "Austria", "Belgium", "Brazil", "Bulgaria", "Canada",
-            "Chile", "China", "Colombia", "Costa Rica", "Croatia", "Czech Republic", "Denmark",
-            "Ecuador", "Egypt", "England", "Finland", "France", "Germany", "Ghana", "Greece",
-            "Hungary", "Iceland", "India", "Indonesia", "Iran", "Ireland", "Israel", "Italy",
-            "Ivory Coast", "Japan", "Kazakhstan", "Kenya", "Malaysia", "Mexico", "Morocco",
-            "Netherlands", "New Zealand", "Nigeria", "Norway", "Peru", "Philippines", "Poland",
-            "Portugal", "Qatar", "Romania", "Russia", "Saudi Arabia", "Scotland", "Senegal",
-            "Serbia", "Singapore", "Slovakia", "Slovenia", "South Africa", "South Korea", "Spain",
-            "Sweden", "Switzerland", "Thailand", "Tunisia", "Turkey", "Ukraine", "United Arab Emirates",
+            "Argentina", "Australia", "Austria", "Belgium", "Brazil", "Bulgaria", "Canada", 
+            "Chile", "China", "Colombia", "Costa Rica", "Croatia", "Czech Republic", "Denmark", 
+            "Ecuador", "Egypt", "England", "Finland", "France", "Germany", "Ghana", "Greece", 
+            "Hungary", "Iceland", "India", "Indonesia", "Iran", "Ireland", "Israel", "Italy", 
+            "Ivory Coast", "Japan", "Kazakhstan", "Kenya", "Malaysia", "Mexico", "Morocco", 
+            "Netherlands", "New Zealand", "Nigeria", "Norway", "Peru", "Philippines", "Poland", 
+            "Portugal", "Qatar", "Romania", "Russia", "Saudi Arabia", "Scotland", "Senegal", 
+            "Serbia", "Singapore", "Slovakia", "Slovenia", "South Africa", "South Korea", "Spain", 
+            "Sweden", "Switzerland", "Thailand", "Tunisia", "Turkey", "Ukraine", "United Arab Emirates", 
             "United Kingdom", "United States", "Uruguay", "Venezuela", "Vietnam", "Wales", "Zimbabwe"
         ];
 
-        // Helper function to ensure nhost is initialized
-        async function ensureNhost() {
-            try {
-                await initPromise;
-                if (!nhost) {
-                    throw new Error('Nhost initialization failed');
-                }
-                return nhost;
-            } catch (error) {
-                console.error('Error in ensureNhost:', error);
-                throw error;
-            }
-        }
-
-        // Helper function for GraphQL requests
-        async function makeGraphQLRequest(query, variables = {}) {
-            try {
-                const nhost = await ensureNhost();
-                const { data, error } = await nhost.graphql.request(query, variables);
-
-                if (error) {
-                    console.error('GraphQL error:', error);
-                    throw error;
-                }
-
-                return data;
-            } catch (error) {
-                console.error('Failed to make GraphQL request:', error);
-                throw error;
-            }
-        }
-
-        // Initialize the application with fallback
-        async function initializeApp() {
-            try {
-                window.showToast('Initializing app...', 'info');
-
-                // NhostClient should be available on window from the module script
-                const Client = window.NhostClient || (typeof NhostClient !== 'undefined' ? NhostClient : null);
-
-                if (Client) {
-                    try {
-                        // Initialize Nhost
-                        nhost = new Client({
-                            subdomain: 'kodpbmemmbmbzuocnlbh',
-                            region: 'us-east-1'
-                        });
-
-                        console.log('Nhost initialized successfully');
-
-                        // Listen for auth state changes
-                        nhost.auth.onAuthStateChanged((event, session) => {
-                            console.log('Auth state changed:', event);
-                            currentUser = session?.user;
-                            window.currentUser = currentUser; // Maintain global access
-
-                            if (currentUser) {
-                                if (currentUser.email === ADMIN_EMAIL) {
-                                    currentUser.roles = ['admin'];
-                                }
-                                window.updateUIForLoggedInUser();
-                                window.loadUserProfile();
-                            } else {
-                                window.updateUIForLoggedOutUser();
-                            }
-                            window.showHome();
-                        });
-
-                        initResolve();
-                        window.showToast('App ready', 'success');
-
-                    } catch (nhostError) {
-                        console.error('Nhost initialization error:', nhostError);
-                        window.showToast('Nhost initialization failed. Switching to demo mode.', 'error');
-                        setupDemoMode();
-                    }
-                } else {
-                    console.error('Nhost SDK not found');
-                    window.showToast('Nhost SDK not found. Switching to demo mode.', 'error');
-                    setupDemoMode();
-                }
-            } catch (error) {
-                console.error('Failed to initialize app:', error);
-                window.showToast('App initialization failed. Switching to demo mode.', 'error');
-                setupDemoMode();
-            }
-        }
-
-        // Setup demo mode for testing
-        function setupDemoMode() {
-            console.log('Setting up demo mode');
-            window.showToast('Running in demo mode - some features may be limited', 'info');
-
-            // Create a mock nhost object
-            nhost = {
-                auth: {
-                    getSession: () => null,
-                    signUp: async () => {
-                        window.showToast('Demo: Registration successful!', 'success');
-                        return { error: null };
-                    },
-                    signIn: async () => {
-                        window.showToast('Demo: Login successful!', 'success');
-                        return { error: null };
-                    },
-                    signOut: () => {
-                        console.log('Demo: Logout');
-                    },
-                    resetPassword: async () => {
-                        window.showToast('Demo: Password reset email sent!', 'success');
-                        return { error: null };
-                    }
-                }
-            };
-
-            initResolve();
-        }
-
-        // Attach all functions to window object
-        window.showToast = function(message, type = 'info') {
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.textContent = message;
-            document.getElementById('toastContainer').appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
+        // League configurations
+        const LEAGUES = {
+            EPL: { name: 'English Premier League', teams: 20 },
+            LaLiga: { name: 'Spanish La Liga', teams: 20 },
+            SerieA: { name: 'Italian Serie A', teams: 20 },
+            Bundesliga: { name: 'German Bundesliga', teams: 18 },
+            Ligue1: { name: 'French Ligue 1', teams: 18 }
         };
 
-        window.filterCountries = function(search) {
-            const filtered = COUNTRIES.filter(c => c.toLowerCase().includes(search.toLowerCase()));
-            const suggestions = document.getElementById('countrySuggestions');
-            suggestions.innerHTML = filtered.map(c => `<div class="suggestion-item" onclick="window.selectCountry('${c}')">${c}</div>`).join('');
-            suggestions.classList.add('active');
-        };
+        // State
+        let currentUser = null;
+        let players = JSON.parse(localStorage.getItem('players')) || [];
+        let matches = JSON.parse(localStorage.getItem('matches')) || [];
+        let chatMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
+        let submittedScreenshots = JSON.parse(localStorage.getItem('submittedScreenshots')) || [];
+        let phaseWinners = JSON.parse(localStorage.getItem('phaseWinners')) || { freePlay: [], leagues: {} };
+        let currentPhase = JSON.parse(localStorage.getItem('currentPhase')) || { number: 1, startDate: new Date().toISOString() };
+        let currentChatMatch = null;
 
-        window.selectCountry = function(country) {
+        // Admin credentials
+        const ADMIN_EMAIL = 'donmacadmin@efootball.com';
+        const ADMIN_PASSWORD = 'Admin@123';
+
+        // Initialize admin
+        function initializeAdmin() {
+            if (!players.some(p => p.email === ADMIN_EMAIL)) {
+                players.push({
+                    id: 1,
+                    name: 'Admin',
+                    email: ADMIN_EMAIL,
+                    password: ADMIN_PASSWORD,
+                    efootballUser: 'Admin',
+                    country: 'Admin',
+                    league: null,
+                    role: 'admin',
+                    status: 'active',
+                    freePlayPoints: 0,
+                    leaguePoints: 0,
+                    matchesPlayed: 0,
+                    wins: 0,
+                    draws: 0,
+                    losses: 0,
+                    goalsFor: 0,
+                    goalsAgainst: 0,
+                    leagueMatchesPlayed: 0,
+                    leagueWins: 0,
+                    leagueDraws: 0,
+                    leagueLosses: 0,
+                    leagueGoalsFor: 0,
+                    leagueGoalsAgainst: 0,
+                    registeredAt: new Date().toISOString()
+                });
+                localStorage.setItem('players', JSON.stringify(players));
+            }
+        }
+
+        // Populate country lists
+        function populateCountries() {
+            const countryList = document.getElementById('countryList');
+            const editCountryList = document.getElementById('editCountryList');
+            
+            if (countryList) {
+                countryList.innerHTML = COUNTRIES.map(country => 
+                    `<div class="country-item" onclick="selectCountry('${country}')">${country}</div>`
+                ).join('');
+            }
+            
+            if (editCountryList) {
+                editCountryList.innerHTML = COUNTRIES.map(country => 
+                    `<div class="country-item" onclick="selectEditCountry('${country}')">${country}</div>`
+                ).join('');
+            }
+        }
+
+        function filterCountries() {
+            const search = document.getElementById('countrySearch').value.toLowerCase();
+            const filtered = COUNTRIES.filter(c => c.toLowerCase().includes(search));
+            const countryList = document.getElementById('countryList');
+            
+            countryList.innerHTML = filtered.map(country => 
+                `<div class="country-item" onclick="selectCountry('${country}')">${country}</div>`
+            ).join('');
+            
+            countryList.classList.add('active');
+        }
+
+        function filterEditCountries() {
+            const search = document.getElementById('editCountrySearch').value.toLowerCase();
+            const filtered = COUNTRIES.filter(c => c.toLowerCase().includes(search));
+            const countryList = document.getElementById('editCountryList');
+            
+            countryList.innerHTML = filtered.map(country => 
+                `<div class="country-item" onclick="selectEditCountry('${country}')">${country}</div>`
+            ).join('');
+            
+            countryList.classList.add('active');
+        }
+
+        function showCountryList() {
+            document.getElementById('countryList').classList.add('active');
+        }
+
+        function showEditCountryList() {
+            document.getElementById('editCountryList').classList.add('active');
+        }
+
+        function selectCountry(country) {
             document.getElementById('regCountry').value = country;
-            document.getElementById('countrySuggestions').classList.remove('active');
-        };
+            document.getElementById('countrySearch').value = country;
+            document.getElementById('countryList').classList.remove('active');
+        }
 
-        window.filterEditCountries = function(search) {
-            const filtered = COUNTRIES.filter(c => c.toLowerCase().includes(search.toLowerCase()));
-            const suggestions = document.getElementById('editCountrySuggestions');
-            suggestions.innerHTML = filtered.map(c => `<div class="suggestion-item" onclick="window.selectEditCountry('${c}')">${c}</div>`).join('');
-            suggestions.classList.add('active');
-        };
-
-        window.selectEditCountry = function(country) {
+        function selectEditCountry(country) {
             document.getElementById('editCountry').value = country;
-            document.getElementById('editCountrySuggestions').classList.remove('active');
-        };
+            document.getElementById('editCountrySearch').value = country;
+            document.getElementById('editCountryList').classList.remove('active');
+        }
 
-        window.showHome = function() {
+        // AI Image Analysis
+        function analyzeScreenshot(imageFile) {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    const fileReader = new FileReader();
+                    fileReader.onload = function(e) {
+                        const content = e.target.result;
+                        let hash = 0;
+                        for (let i = 0; i < Math.min(content.length, 1000); i++) {
+                            hash = ((hash << 5) - hash) + content.charCodeAt(i);
+                            hash = hash & hash;
+                        }
+                        const imageHash = hash.toString();
+                        
+                        const isDuplicate = submittedScreenshots.some(s => s.hash === imageHash);
+                        
+                        // Simulate extracting scores from screenshot
+                        const extractedScores = {
+                            homeScore: Math.floor(Math.random() * 6),
+                            awayScore: Math.floor(Math.random() * 6)
+                        };
+                        
+                        resolve({
+                            hash: imageHash,
+                            isDuplicate: isDuplicate,
+                            extractedScores: extractedScores,
+                            isManipulated: Math.random() < 0.05
+                        });
+                    };
+                    fileReader.readAsDataURL(imageFile);
+                }, 1000);
+            });
+        }
+
+        // AI Verification System
+        class AIVerifier {
+            async verifyResult(match, submittedScore, opponentScore, screenshot) {
+                const issues = [];
+                const warnings = [];
+
+                // Check for duplicate screenshots
+                const screenshotAnalysis = await analyzeScreenshot(screenshot);
+                
+                if (screenshotAnalysis.isDuplicate) {
+                    issues.push('This screenshot has been used before');
+                }
+
+                if (screenshotAnalysis.isManipulated) {
+                    issues.push('Screenshot appears to be edited');
+                }
+
+                // Verify scores match screenshot
+                const extractedHomeScore = match.player1 === currentUser.id ? 
+                    screenshotAnalysis.extractedScores.homeScore : screenshotAnalysis.extractedScores.awayScore;
+                const extractedAwayScore = match.player1 === currentUser.id ? 
+                    screenshotAnalysis.extractedScores.awayScore : screenshotAnalysis.extractedScores.homeScore;
+
+                if (extractedHomeScore !== submittedScore || extractedAwayScore !== opponentScore) {
+                    issues.push('Scores do not match the screenshot');
+                }
+
+                // Check for unrealistic scores
+                if (submittedScore > 15 || opponentScore > 15) {
+                    warnings.push('Unusually high score');
+                }
+
+                return {
+                    verified: issues.length === 0,
+                    issues: issues,
+                    warnings: warnings,
+                    screenshotHash: screenshotAnalysis.hash
+                };
+            }
+        }
+
+        const aiVerifier = new AIVerifier();
+
+        // Navigation Functions
+        function showHome() {
             if (currentUser) {
                 document.getElementById('heroSection').style.display = 'none';
                 document.getElementById('dashboard').classList.add('active');
                 document.getElementById('profilePage').style.display = 'none';
-                document.getElementById('backButton').style.display = 'none';
-                window.startOnlineCounter();
-                window.fetchWinners();
+                switchMode('freeplay');
             } else {
                 document.getElementById('heroSection').style.display = 'flex';
                 document.getElementById('dashboard').classList.remove('active');
+                document.getElementById('profilePage').style.display = 'none';
             }
-        };
+        }
 
-        window.showFreePlay = function() {
-            if (!currentUser) { window.showLoginModal(); return; }
-            window.switchMode('freeplay');
-        };
-
-        window.showLeagues = function() {
-            if (!currentUser) { window.showLoginModal(); return; }
-            window.switchMode('league');
-        };
-
-        window.showLeaderboard = function() {
-            if (!currentUser) { window.showLoginModal(); return; }
-            window.switchMode('freeplay');
-            // Wait for DOM update and scroll to leaderboard
-            setTimeout(() => {
-                const leaderboard = document.querySelector('#freeplaySection .leaderboard-table');
-                if (leaderboard) {
-                    leaderboard.scrollIntoView({ behavior: 'smooth' });
-                }
-            }, 100);
-        };
-
-        window.showProfile = function() {
-            if (!currentUser) { window.showLoginModal(); return; }
-            document.getElementById('profilePage').style.display = 'block';
-            document.getElementById('dashboard').classList.remove('active');
+        function showFreePlay() {
+            if (!currentUser) {
+                showToast('Please login first', 'warning');
+                showLoginModal();
+                return;
+            }
             document.getElementById('heroSection').style.display = 'none';
-            document.getElementById('backButton').style.display = 'inline-flex';
-            window.loadProfileData();
-        };
-
-        window.showDashboard = function() {
-            document.getElementById('profilePage').style.display = 'none';
             document.getElementById('dashboard').classList.add('active');
-            document.getElementById('backButton').style.display = 'none';
-        };
+            document.getElementById('profilePage').style.display = 'none';
+            switchMode('freeplay');
+        }
 
-        window.showLoginModal = function() {
-            document.getElementById('loginModal').classList.add('active');
-        };
-
-        window.showRegisterModal = function() {
-            document.getElementById('registerModal').classList.add('active');
-        };
-
-        window.showForgotPasswordModal = function() {
-            document.getElementById('loginModal').classList.remove('active');
-            document.getElementById('forgotPasswordModal').classList.add('active');
-        };
-
-        window.closeModal = function(id) {
-            document.getElementById(id).classList.remove('active');
-        };
-
-        window.switchToRegister = function() {
-            window.closeModal('loginModal');
-            window.closeModal('forgotPasswordModal');
-            window.showRegisterModal();
-        };
-
-        window.switchToLogin = function() {
-            window.closeModal('registerModal');
-            window.closeModal('forgotPasswordModal');
-            window.showLoginModal();
-        };
-
-        window.handleForgotPassword = async function(event) {
-            event.preventDefault();
-
-            const email = document.getElementById('forgotEmail').value;
-
-            try {
-                const nhost = await ensureNhost();
-                const { error } = await nhost.auth.resetPassword({ email });
-
-                if (error) throw error;
-
-                window.showToast('Password reset link sent to your email!', 'success');
-                window.closeModal('forgotPasswordModal');
-                window.showLoginModal();
-            } catch (error) {
-                window.showToast(error.message, 'error');
+        function showLeagues() {
+            if (!currentUser) {
+                showToast('Please login first', 'warning');
+                showLoginModal();
+                return;
             }
-        };
+            document.getElementById('heroSection').style.display = 'none';
+            document.getElementById('dashboard').classList.add('active');
+            document.getElementById('profilePage').style.display = 'none';
+            switchMode('league');
+        }
 
-        window.handleRegister = async function(event) {
+        function showLeaderboard() {
+            if (!currentUser) {
+                showToast('Please login first', 'warning');
+                showLoginModal();
+                return;
+            }
+            showFullLeaderboard();
+        }
+
+        function showProfile() {
+            if (!currentUser) {
+                showToast('Please login first', 'warning');
+                showLoginModal();
+                return;
+            }
+            
+            document.getElementById('heroSection').style.display = 'none';
+            document.getElementById('dashboard').classList.remove('active');
+            document.getElementById('profilePage').style.display = 'block';
+            
+            document.getElementById('profileName').textContent = currentUser.name;
+            document.getElementById('profileCountry').textContent = currentUser.country || 'Not set';
+            document.getElementById('profileEfootball').textContent = currentUser.efootballUser;
+            document.getElementById('profileLeague').textContent = currentUser.league ? LEAGUES[currentUser.league].name : 'Not in any league';
+            
+            // Profile stats
+            document.getElementById('profileFreePlayStats').innerHTML = `
+                <p>P: ${currentUser.matchesPlayed || 0} | W: ${currentUser.wins || 0} | D: ${currentUser.draws || 0} | L: ${currentUser.losses || 0}</p>
+                <p>GF: ${currentUser.goalsFor || 0} | GA: ${currentUser.goalsAgainst || 0} | GD: ${(currentUser.goalsFor || 0) - (currentUser.goalsAgainst || 0)}</p>
+                <p>Points: ${currentUser.freePlayPoints || 0}</p>
+            `;
+            
+            document.getElementById('profileLeagueStats').innerHTML = `
+                <p>P: ${currentUser.leagueMatchesPlayed || 0} | W: ${currentUser.leagueWins || 0} | D: ${currentUser.leagueDraws || 0} | L: ${currentUser.leagueLosses || 0}</p>
+                <p>GF: ${currentUser.leagueGoalsFor || 0} | GA: ${currentUser.leagueGoalsAgainst || 0} | GD: ${(currentUser.leagueGoalsFor || 0) - (currentUser.leagueGoalsAgainst || 0)}</p>
+                <p>Points: ${currentUser.leaguePoints || 0}</p>
+            `;
+        }
+
+        function switchMode(mode) {
+            document.getElementById('freeplayMode').classList.toggle('active', mode === 'freeplay');
+            document.getElementById('leagueMode').classList.toggle('active', mode === 'league');
+            
+            document.getElementById('freeplaySection').style.display = mode === 'freeplay' ? 'block' : 'none';
+            document.getElementById('leagueSection').style.display = mode === 'league' ? 'block' : 'none';
+            
+            if (mode === 'league') {
+                loadLeagues();
+                if (currentUser.league) {
+                    document.getElementById('leagueStandings').style.display = 'block';
+                    updateLeagueLeaderboard();
+                } else {
+                    document.getElementById('leagueStandings').style.display = 'none';
+                }
+            } else if (mode === 'freeplay') {
+                loadActiveMatches();
+                updateFreePlayLeaderboard();
+            }
+        }
+
+        // Authentication Functions
+        function handleRegister(event) {
             event.preventDefault();
 
             const email = document.getElementById('regEmail').value;
-            const password = document.getElementById('regPassword').value;
-            const name = document.getElementById('regName').value;
-            const country = document.getElementById('regCountry').value;
-            const efootballUser = document.getElementById('regEfootball').value;
-
-            try {
-                const nhost = await ensureNhost();
-                const { error } = await nhost.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        displayName: name,
-                        metadata: {
-                            country,
-                            efootballUser
-                        }
-                    }
-                });
-
-                if (error) throw error;
-
-                window.showToast('Registration successful! Please check your email for verification.', 'success');
-                window.closeModal('registerModal');
-                window.showLoginModal();
-            } catch (error) {
-                window.showToast(error.message, 'error');
+            if (players.some(p => p.email === email)) {
+                showToast('Email already registered', 'error');
+                return;
             }
-        };
 
-        window.handleLogin = async function(event) {
+            const country = document.getElementById('regCountry').value;
+            if (!country) {
+                showToast('Please select your country', 'error');
+                return;
+            }
+
+            const newPlayer = {
+                id: players.length + 1,
+                name: document.getElementById('regName').value,
+                email: email,
+                password: document.getElementById('regPassword').value,
+                efootballUser: document.getElementById('regEfootball').value,
+                country: country,
+                league: null,
+                role: 'player',
+                status: 'active',
+                freePlayPoints: 0,
+                leaguePoints: 0,
+                matchesPlayed: 0,
+                wins: 0,
+                draws: 0,
+                losses: 0,
+                goalsFor: 0,
+                goalsAgainst: 0,
+                leagueMatchesPlayed: 0,
+                leagueWins: 0,
+                leagueDraws: 0,
+                leagueLosses: 0,
+                leagueGoalsFor: 0,
+                leagueGoalsAgainst: 0,
+                registeredAt: new Date().toISOString()
+            };
+
+            players.push(newPlayer);
+            localStorage.setItem('players', JSON.stringify(players));
+            
+            showToast('Registration successful! Please login.', 'success');
+            closeModal('registerModal');
+            showLoginModal();
+        }
+
+        function handleLogin(event) {
             event.preventDefault();
 
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
 
-            try {
-                const nhost = await ensureNhost();
-                const { error } = await nhost.auth.signIn({ email, password });
-                if (error) throw error;
-
-                window.showToast('Login successful!', 'success');
-                window.closeModal('loginModal');
-            } catch (error) {
-                window.showToast(error.message, 'error');
+            const player = players.find(p => p.email === email && p.password === password);
+            
+            if (player) {
+                if (player.status === 'blocked') {
+                    showToast('Your account has been blocked. Contact admin.', 'error');
+                    return;
+                }
+                
+                currentUser = player;
+                
+                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('registerBtn').style.display = 'none';
+                document.getElementById('logoutBtn').style.display = 'inline-block';
+                
+                if (player.role === 'admin') {
+                    document.getElementById('adminBtn').style.display = 'inline-block';
+                } else {
+                    document.getElementById('adminBtn').style.display = 'none';
+                }
+                
+                document.getElementById('heroSection').style.display = 'none';
+                document.getElementById('dashboard').classList.add('active');
+                document.getElementById('profilePage').style.display = 'none';
+                
+                document.getElementById('playerName').textContent = player.name;
+                document.getElementById('playerStatus').textContent = player.league ? 
+                    `Currently in ${LEAGUES[player.league].name}` : 'Not in any league';
+                
+                updateStats();
+                loadActiveMatches();
+                updateFreePlayLeaderboard();
+                updatePhaseWinnersDisplay();
+                
+                showToast(`Welcome back, ${player.name}!`, 'success');
+                closeModal('loginModal');
+                
+                switchMode('freeplay');
+            } else {
+                showToast('Invalid email or password', 'error');
             }
-        };
+        }
 
-        window.logout = function() {
-            try {
-                ensureNhost().then(nhost => {
-                    nhost.auth.signOut();
-                    window.showToast('Logged out', 'info');
-                }).catch(() => {
-                    // Fallback local cleanup if nhost fails
-                    currentUser = null;
-                    window.currentUser = null;
-                    window.updateUIForLoggedOutUser();
-                    window.showHome();
-                    window.showToast('Logged out', 'info');
-                });
-            } catch (error) {
-                window.showToast(error.message, 'error');
-            }
-        };
-
-        window.updateUIForLoggedInUser = function() {
-            document.getElementById('loginBtn').style.display = 'none';
-            document.getElementById('registerBtn').style.display = 'none';
-            document.getElementById('logoutBtn').style.display = 'inline-block';
-            document.getElementById('mobileLoginBtn').style.display = 'none';
-            document.getElementById('mobileRegisterBtn').style.display = 'none';
-            document.getElementById('mobileLogoutBtn').style.display = 'block';
-
-            if (currentUser?.email === ADMIN_EMAIL) {
-                document.getElementById('adminBtn').style.display = 'inline-block';
-            }
-        };
-
-        window.updateUIForLoggedOutUser = function() {
+        function logout() {
+            currentUser = null;
+            currentChatMatch = null;
+            
             document.getElementById('loginBtn').style.display = 'inline-block';
             document.getElementById('registerBtn').style.display = 'inline-block';
             document.getElementById('logoutBtn').style.display = 'none';
             document.getElementById('adminBtn').style.display = 'none';
-            document.getElementById('mobileLoginBtn').style.display = 'block';
-            document.getElementById('mobileRegisterBtn').style.display = 'block';
-            document.getElementById('mobileLogoutBtn').style.display = 'none';
-        };
-
-        window.loadUserProfile = async function() {
-            if (!currentUser) return;
-
-            try {
-                // Use displayName from Nhost user object
-                document.getElementById('playerName').textContent = currentUser.displayName || currentUser.email.split('@')[0];
-
-                // Fetch stats and other data
-                window.fetchUserStats();
-                window.fetchActiveMatches();
-            } catch (error) {
-                console.error('Error loading profile:', error);
-                window.showToast('Failed to load profile data', 'error');
-            }
-        };
-
-        window.loadProfileData = function() {
-            if (currentUser) {
-                document.getElementById('profileName').textContent = currentUser.displayName || 'N/A';
-                document.getElementById('profileCountry').textContent = currentUser.metadata?.country || 'N/A';
-                document.getElementById('profileEfootball').textContent = currentUser.metadata?.efootballUser || 'N/A';
-                document.getElementById('profileLeague').textContent = currentUser.metadata?.league || 'None';
-            }
-        };
-
-        window.startOnlineCounter = function() {
-            if (onlineInterval) clearInterval(onlineInterval);
-
-            onlineInterval = setInterval(async () => {
-                // In demo mode, show random number
-                onlineUsers = Math.floor(Math.random() * 50) + 10;
-                document.getElementById('onlineCounter').innerHTML = `
-                    <span class="online-dot"></span>
-                    <span>${onlineUsers} players online</span>
-                `;
-            }, 30000);
-
-            // Set initial value
-            onlineUsers = Math.floor(Math.random() * 50) + 10;
-            document.getElementById('onlineCounter').innerHTML = `
-                <span class="online-dot"></span>
-                <span>${onlineUsers} players online</span>
-            `;
-        };
-
-        window.switchMode = function(mode) {
-            if (mode === 'freeplay') {
-                document.getElementById('freeplaySection').style.display = 'block';
-                document.getElementById('leagueSection').style.display = 'none';
-                document.getElementById('freeplayMode').classList.add('active');
-                document.getElementById('leagueMode').classList.remove('active');
-                window.fetchLeaderboard();
-            } else {
-                document.getElementById('freeplaySection').style.display = 'none';
-                document.getElementById('leagueSection').style.display = 'block';
-                document.getElementById('leagueMode').classList.add('active');
-                document.getElementById('freeplayMode').classList.remove('active');
-                window.fetchLeagues();
-            }
-        };
-
-        window.fetchLeaderboard = async function() {
-            try {
-                const GET_LEADERBOARD = `
-                    query GetLeaderboard {
-                        free_play_leaderboard(order_by: {pts: desc}) {
-                            player_name
-                            country
-                            played
-                            wins
-                            draws
-                            losses
-                            gf
-                            ga
-                            gd
-                            pts
-                        }
-                    }
-                `;
-                const data = await makeGraphQLRequest(GET_LEADERBOARD);
-                const leaderboardBody = document.getElementById('freePlayLeaderboardBody');
-
-                if (data && data.free_play_leaderboard) {
-                    if (data.free_play_leaderboard.length === 0) {
-                        leaderboardBody.innerHTML = '<tr><td colspan="11" style="text-align:center;">No data available</td></tr>';
-                    } else {
-                        leaderboardBody.innerHTML = data.free_play_leaderboard.map((player, index) => `
-                            <tr class="rank-${index + 1}">
-                                <td>${index + 1}</td>
-                                <td>${player.player_name}</td>
-                                <td>${player.country}</td>
-                                <td>${player.played}</td>
-                                <td>${player.wins}</td>
-                                <td>${player.draws}</td>
-                                <td>${player.losses}</td>
-                                <td>${player.gf}</td>
-                                <td>${player.ga}</td>
-                                <td>${player.gd}</td>
-                                <td>${player.pts}</td>
-                            </tr>
-                        `).join('');
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to fetch leaderboard:', error);
-            }
-        };
-
-        window.fetchUserStats = async function() {
-            if (!currentUser) return;
-            try {
-                const GET_USER_STATS = `
-                    query GetUserStats($userId: uuid!) {
-                        user_stats_by_pk(user_id: $userId) {
-                            free_play_pts
-                            league_pts
-                            total_matches
-                            goal_difference
-                        }
-                    }
-                `;
-                const data = await makeGraphQLRequest(GET_USER_STATS, { userId: currentUser.id });
-                if (data && data.user_stats_by_pk) {
-                    document.getElementById('freePlayPoints').textContent = data.user_stats_by_pk.free_play_pts;
-                    document.getElementById('leaguePoints').textContent = data.user_stats_by_pk.league_pts;
-                    document.getElementById('totalMatches').textContent = data.user_stats_by_pk.total_matches;
-                    document.getElementById('goalDifference').textContent = data.user_stats_by_pk.goal_difference;
-                }
-            } catch (error) {
-                console.error('Failed to fetch user stats:', error);
-            }
-        };
-
-        window.fetchActiveMatches = async function() {
-            if (!currentUser) return;
-            try {
-                const GET_ACTIVE_MATCHES = `
-                    query GetActiveMatches($userId: uuid!) {
-                        matches(where: {
-                            _or: [{player1_id: {_eq: $userId}}, {player2_id: {_eq: $userId}}],
-                            status: {_eq: "active"}
-                        }) {
-                            id
-                            player1_id
-                            player2_id
-                            player1 { displayName }
-                            player2 { displayName }
-                            created_at
-                        }
-                    }
-                `;
-                const data = await makeGraphQLRequest(GET_ACTIVE_MATCHES, { userId: currentUser.id });
-                const matchesContainer = document.getElementById('activeMatches');
-
-                if (data && data.matches) {
-                    if (data.matches.length === 0) {
-                        matchesContainer.innerHTML = '<p>No active matches</p>';
-                    } else {
-                        matchesContainer.innerHTML = data.matches.map(match => `
-                            <div class="match-card">
-                                <h3>Match vs ${match.player1_id === currentUser.id ? match.player2.displayName : match.player1.displayName}</h3>
-                                <p>Started: ${new Date(match.created_at).toLocaleString()}</p>
-                                <div class="match-actions">
-                                    <button class="btn btn-primary" onclick="window.showResultModal('${match.id}', '${match.player1_id === currentUser.id ? match.player2.displayName : match.player1.displayName}')">Submit Result</button>
-                                    <button class="btn btn-secondary" onclick="window.openChat('${match.id}', '${match.player1_id === currentUser.id ? match.player2.displayName : match.player1.displayName}')">Chat</button>
-                                </div>
-                            </div>
-                        `).join('');
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to fetch active matches:', error);
-            }
-        };
-
-        window.fetchLeagues = async function() {
-            try {
-                const GET_LEAGUES = `
-                    query GetLeagues {
-                        leagues {
-                            id
-                            name
-                            description
-                            participants_count
-                        }
-                    }
-                `;
-                const data = await makeGraphQLRequest(GET_LEAGUES);
-                const leagueList = document.getElementById('leagueList');
-
-                if (data && data.leagues) {
-                    if (data.leagues.length === 0) {
-                        leagueList.innerHTML = '<p>No active leagues available</p>';
-                    } else {
-                        leagueList.innerHTML = data.leagues.map(league => `
-                            <div class="league-card">
-                                <h3>${league.name}</h3>
-                                <p>${league.description}</p>
-                                <p>${league.participants_count} Players</p>
-                                <button class="btn btn-primary" onclick="window.joinLeague('${league.id}')">Join League</button>
-                            </div>
-                        `).join('');
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to fetch leagues:', error);
-            }
-        };
-
-        window.fetchWinners = async function() {
-            try {
-                const GET_WINNERS = `
-                    query GetWinners {
-                        free_play_phase_winners(limit: 3) {
-                            player_name
-                            rank
-                        }
-                        league_champions(limit: 3) {
-                            player_name
-                            league_name
-                        }
-                    }
-                `;
-                const data = await makeGraphQLRequest(GET_WINNERS);
-                if (data) {
-                    if (data.free_play_phase_winners) {
-                        document.getElementById('freePlayPhaseTop3').innerHTML = data.free_play_phase_winners.map(w => `<div>${w.rank}. ${w.player_name}</div>`).join('') || 'No winners yet';
-                    }
-                    if (data.league_champions) {
-                        document.getElementById('leagueChampions').innerHTML = data.league_champions.map(c => `<div>${c.league_name}: ${c.player_name}</div>`).join('') || 'No champions yet';
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to fetch winners:', error);
-            }
-        };
-
-        window.findOpponent = function() {
-            window.showToast('Searching for opponents...', 'info');
-        };
-
-        window.submitResult = function(e) {
-            e.preventDefault();
-            window.showToast('Result submitted', 'success');
-        };
-
-        window.sendMessage = function() {
-            window.showToast('Message sent', 'info');
-        };
-
-        window.closeChat = function() {
             document.getElementById('chatContainer').classList.remove('active');
-        };
+            
+            document.getElementById('heroSection').style.display = 'flex';
+            document.getElementById('dashboard').classList.remove('active');
+            document.getElementById('profilePage').style.display = 'none';
+            
+            showToast('Logged out successfully', 'info');
+        }
 
-        window.toggleMobileMenu = function() {
-            document.getElementById('mobileNav').classList.toggle('active');
-        };
+        function updateStats() {
+            if (!currentUser) return;
 
-        window.goBack = function() {
-            window.showDashboard();
-        };
+            document.getElementById('freePlayPoints').textContent = currentUser.freePlayPoints || 0;
+            document.getElementById('leaguePoints').textContent = currentUser.leaguePoints || 0;
+            document.getElementById('totalMatches').textContent = (currentUser.matchesPlayed || 0) + (currentUser.leagueMatchesPlayed || 0);
+            
+            const goalDifference = ((currentUser.goalsFor || 0) - (currentUser.goalsAgainst || 0)) + 
+                                 ((currentUser.leagueGoalsFor || 0) - (currentUser.leagueGoalsAgainst || 0));
+            document.getElementById('goalDifference').textContent = goalDifference;
+        }
 
-        window.showEditProfile = function() {
-            document.getElementById('editProfileModal').classList.add('active');
-            if (currentUser) {
-                document.getElementById('editName').value = currentUser.displayName || '';
-                document.getElementById('editCountry').value = currentUser.metadata?.country || '';
-                document.getElementById('editEfootball').value = currentUser.metadata?.efootballUser || '';
+        // Free Play Functions
+        function findOpponent() {
+            showToast('Searching for opponents...', 'info');
+            
+            setTimeout(() => {
+                const availableOpponents = players.filter(p => 
+                    p.id !== currentUser.id && 
+                    p.role !== 'admin' &&
+                    p.status === 'active'
+                );
+                
+                if (availableOpponents.length > 0) {
+                    const opponent = availableOpponents[Math.floor(Math.random() * availableOpponents.length)];
+                    
+                    const match = {
+                        id: 'M' + Date.now(),
+                        type: 'freeplay',
+                        player1: currentUser.id,
+                        player2: opponent.id,
+                        status: 'pending',
+                        createdAt: new Date().toISOString()
+                    };
+                    
+                    matches.push(match);
+                    localStorage.setItem('matches', JSON.stringify(matches));
+                    
+                    showToast(`Match found! Playing against ${opponent.efootballUser}`, 'success');
+                    loadActiveMatches();
+                } else {
+                    showToast('No opponents available', 'warning');
+                }
+            }, 2000);
+        }
+
+        function loadActiveMatches() {
+            if (!currentUser) return;
+
+            const activeMatches = matches.filter(m => 
+                (m.player1 === currentUser.id || m.player2 === currentUser.id) && m.status === 'pending'
+            );
+
+            const container = document.getElementById('activeMatches');
+            
+            if (activeMatches.length === 0) {
+                container.innerHTML = '<p style="color: #b0b0b0;">No active matches. Click "Search for Opponent" to start playing!</p>';
+                return;
             }
-        };
 
-        window.updateProfile = async function(e) {
-            e.preventDefault();
+            container.innerHTML = '<div class="match-grid"></div>';
+            const grid = container.querySelector('.match-grid');
 
-            const displayName = document.getElementById('editName').value;
-            const country = document.getElementById('editCountry').value;
-            const efootballUser = document.getElementById('editEfootball').value;
+            activeMatches.forEach(match => {
+                const opponent = players.find(p => p.id === (match.player1 === currentUser.id ? match.player2 : match.player1));
+                
+                const card = document.createElement('div');
+                card.className = 'match-card';
+                card.innerHTML = `
+                    <h3>vs ${opponent ? opponent.efootballUser : 'Unknown'}</h3>
+                    <p style="color: #b0b0b0;">Match ID: ${match.id}</p>
+                    <div class="match-actions">
+                        <button class="btn btn-primary" onclick="openResultModal('${match.id}')">Submit Result</button>
+                        <button class="btn btn-secondary" onclick="openChat('${match.id}')">💬 Chat</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
 
-            try {
-                // Since Nhost SDK v2 doesn't have a direct updateUser method,
-                // we use a GraphQL mutation to update the user's profile.
-                const UPDATE_USER_MUTATION = `
-                    mutation UpdateUser($id: uuid!, $displayName: String!, $metadata: jsonb!) {
-                        updateUser(pk_columns: {id: $id}, _set: {displayName: $displayName, metadata: $metadata}) {
-                            id
-                            displayName
-                            metadata
+        // Free Play Leaderboard
+        function updateFreePlayLeaderboard() {
+            const freePlayPlayers = players
+                .filter(p => p.role !== 'admin')
+                .map(p => ({
+                    ...p,
+                    totalPoints: p.freePlayPoints || 0,
+                    goalDifference: (p.goalsFor || 0) - (p.goalsAgainst || 0)
+                }))
+                .sort((a, b) => {
+                    if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
+                    if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+                    return (b.goalsFor || 0) - (a.goalsFor || 0);
+                });
+
+            const tbody = document.getElementById('freePlayLeaderboardBody');
+            tbody.innerHTML = freePlayPlayers.map((player, index) => {
+                const rowClass = index < 3 ? `rank-${index + 1}` : '';
+                return `
+                    <tr class="${rowClass}">
+                        <td><strong>#${index + 1}</strong></td>
+                        <td>${player.efootballUser}</td>
+                        <td>${player.country || 'N/A'}</td>
+                        <td>${player.matchesPlayed || 0}</td>
+                        <td>${player.wins || 0}</td>
+                        <td>${player.draws || 0}</td>
+                        <td>${player.losses || 0}</td>
+                        <td>${player.goalsFor || 0}</td>
+                        <td>${player.goalsAgainst || 0}</td>
+                        <td>${(player.goalsFor || 0) - (player.goalsAgainst || 0)}</td>
+                        <td><strong style="color: #00d4ff;">${player.freePlayPoints || 0}</strong></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // League Functions
+        function loadLeagues() {
+            const leagueList = document.getElementById('leagueList');
+            leagueList.innerHTML = '';
+
+            Object.keys(LEAGUES).forEach(leagueCode => {
+                const leaguePlayers = players.filter(p => p.league === leagueCode && p.role !== 'admin');
+                const isFull = leaguePlayers.length === LEAGUES[leagueCode].teams;
+                const isRegistered = currentUser.league === leagueCode;
+
+                const card = document.createElement('div');
+                card.className = 'league-card';
+                card.innerHTML = `
+                    <h3>${LEAGUES[leagueCode].name}</h3>
+                    <div class="teams">${leaguePlayers.length}/${LEAGUES[leagueCode].teams}</div>
+                    <div style="color: ${isFull ? '#f44336' : '#4caf50'}; margin: 0.5rem 0;">
+                        ${isFull ? '🔴 Full' : '🟢 Open'}
+                    </div>
+                    ${!currentUser.league && !isFull ? 
+                        `<button class="btn btn-primary" onclick="joinLeague('${leagueCode}')" style="margin-top: 1rem;">Join League</button>` : 
+                        isRegistered ? '<p style="color: #4caf50; margin-top: 1rem;">✓ You are in this league</p>' : ''}
+                    ${currentUser.league === leagueCode ? '<p style="color: #4caf50; margin-top: 1rem;">✓ Your current league</p>' : ''}
+                `;
+                leagueList.appendChild(card);
+            });
+        }
+
+        function joinLeague(leagueCode) {
+            if (currentUser.league) {
+                showToast('You are already in a league', 'error');
+                return;
+            }
+
+            const leaguePlayers = players.filter(p => p.league === leagueCode && p.role !== 'admin');
+            
+            if (leaguePlayers.length >= LEAGUES[leagueCode].teams) {
+                showToast('League is full', 'error');
+                return;
+            }
+
+            currentUser.league = leagueCode;
+            const index = players.findIndex(p => p.id === currentUser.id);
+            if (index !== -1) {
+                players[index].league = leagueCode;
+                localStorage.setItem('players', JSON.stringify(players));
+            }
+
+            showToast(`Joined ${LEAGUES[leagueCode].name}!`, 'success');
+            loadLeagues();
+            document.getElementById('leagueStandings').style.display = 'block';
+            updateLeagueLeaderboard();
+        }
+
+        function updateLeagueLeaderboard() {
+            if (!currentUser.league) return;
+
+            const leaguePlayers = players
+                .filter(p => p.league === currentUser.league && p.role !== 'admin')
+                .map(p => ({
+                    ...p,
+                    totalPoints: p.leaguePoints || 0,
+                    goalDifference: (p.leagueGoalsFor || 0) - (p.leagueGoalsAgainst || 0)
+                }))
+                .sort((a, b) => {
+                    if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
+                    if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+                    return (b.leagueGoalsFor || 0) - (a.leagueGoalsFor || 0);
+                });
+
+            const tbody = document.getElementById('leagueLeaderboardBody');
+            tbody.innerHTML = leaguePlayers.map((player, index) => {
+                const rowClass = index < 3 ? `rank-${index + 1}` : '';
+                return `
+                    <tr class="${rowClass}">
+                        <td><strong>#${index + 1}</strong></td>
+                        <td>${player.efootballUser}</td>
+                        <td>${player.country || 'N/A'}</td>
+                        <td>${player.leagueMatchesPlayed || 0}</td>
+                        <td>${player.leagueWins || 0}</td>
+                        <td>${player.leagueDraws || 0}</td>
+                        <td>${player.leagueLosses || 0}</td>
+                        <td>${player.leagueGoalsFor || 0}</td>
+                        <td>${player.leagueGoalsAgainst || 0}</td>
+                        <td>${(player.leagueGoalsFor || 0) - (player.leagueGoalsAgainst || 0)}</td>
+                        <td><strong style="color: #00d4ff;">${player.leaguePoints || 0}</strong></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Result Submission
+        function openResultModal(matchId) {
+            const match = matches.find(m => m.id === matchId);
+            if (!match) return;
+
+            const opponent = players.find(p => p.id === (match.player1 === currentUser.id ? match.player2 : match.player1));
+
+            document.getElementById('resultMatchId').value = matchId;
+            document.getElementById('resultOpponent').value = opponent ? opponent.efootballUser : 'Unknown';
+            
+            document.getElementById('yourScore').value = '';
+            document.getElementById('opponentScore').value = '';
+            document.getElementById('matchScreenshot').value = '';
+            document.getElementById('matchVideo').value = '';
+            
+            document.getElementById('resultModal').classList.add('active');
+        }
+
+        async function submitResult(event) {
+            event.preventDefault();
+
+            const matchId = document.getElementById('resultMatchId').value;
+            const match = matches.find(m => m.id === matchId);
+            if (!match) return;
+
+            const yourScore = parseInt(document.getElementById('yourScore').value);
+            const opponentScore = parseInt(document.getElementById('opponentScore').value);
+            const screenshot = document.getElementById('matchScreenshot').files[0];
+
+            if (!screenshot) {
+                showToast('Please upload a screenshot', 'error');
+                return;
+            }
+
+            const opponent = players.find(p => p.id === (match.player1 === currentUser.id ? match.player2 : match.player1));
+
+            showToast('🤖 AI verifying your result...', 'info');
+            
+            const verification = await aiVerifier.verifyResult(match, yourScore, opponentScore, screenshot);
+
+            if (verification.verified) {
+                match.status = 'completed';
+                match.result = {
+                    player1Score: match.player1 === currentUser.id ? yourScore : opponentScore,
+                    player2Score: match.player2 === currentUser.id ? yourScore : opponentScore
+                };
+                match.verifiedAt = new Date().toISOString();
+
+                submittedScreenshots.push({
+                    hash: verification.screenshotHash,
+                    matchId: match.id,
+                    submittedBy: currentUser.id,
+                    submittedAt: new Date().toISOString()
+                });
+                localStorage.setItem('submittedScreenshots', JSON.stringify(submittedScreenshots));
+
+                // Update player stats with goals
+                if (match.type === 'freeplay') {
+                    currentUser.goalsFor = (currentUser.goalsFor || 0) + yourScore;
+                    currentUser.goalsAgainst = (currentUser.goalsAgainst || 0) + opponentScore;
+                    
+                    if (opponent) {
+                        opponent.goalsFor = (opponent.goalsFor || 0) + opponentScore;
+                        opponent.goalsAgainst = (opponent.goalsAgainst || 0) + yourScore;
+                    }
+
+                    if (yourScore > opponentScore) {
+                        currentUser.freePlayPoints = (currentUser.freePlayPoints || 0) + 3;
+                        currentUser.wins = (currentUser.wins || 0) + 1;
+                        
+                        if (opponent) {
+                            opponent.losses = (opponent.losses || 0) + 1;
+                        }
+                        
+                        showToast('🎉 Victory! +3 points', 'success');
+                    } else if (yourScore === opponentScore) {
+                        currentUser.freePlayPoints = (currentUser.freePlayPoints || 0) + 1;
+                        currentUser.draws = (currentUser.draws || 0) + 1;
+                        
+                        if (opponent) {
+                            opponent.freePlayPoints = (opponent.freePlayPoints || 0) + 1;
+                            opponent.draws = (opponent.draws || 0) + 1;
+                        }
+                        
+                        showToast('🤝 Draw! +1 point', 'info');
+                    } else {
+                        currentUser.losses = (currentUser.losses || 0) + 1;
+                        
+                        if (opponent) {
+                            opponent.freePlayPoints = (opponent.freePlayPoints || 0) + 3;
+                            opponent.wins = (opponent.wins || 0) + 1;
+                        }
+                        
+                        showToast('💪 Good try! Better luck next time', 'info');
+                    }
+                    
+                    currentUser.matchesPlayed = (currentUser.matchesPlayed || 0) + 1;
+                    
+                    if (opponent) {
+                        opponent.matchesPlayed = (opponent.matchesPlayed || 0) + 1;
+                    }
+                } else if (match.type === 'league') {
+                    currentUser.leagueGoalsFor = (currentUser.leagueGoalsFor || 0) + yourScore;
+                    currentUser.leagueGoalsAgainst = (currentUser.leagueGoalsAgainst || 0) + opponentScore;
+                    
+                    if (opponent) {
+                        opponent.leagueGoalsFor = (opponent.leagueGoalsFor || 0) + opponentScore;
+                        opponent.leagueGoalsAgainst = (opponent.leagueGoalsAgainst || 0) + yourScore;
+                    }
+
+                    if (yourScore > opponentScore) {
+                        currentUser.leaguePoints = (currentUser.leaguePoints || 0) + 3;
+                        currentUser.leagueWins = (currentUser.leagueWins || 0) + 1;
+                        
+                        if (opponent) {
+                            opponent.leagueLosses = (opponent.leagueLosses || 0) + 1;
+                        }
+                    } else if (yourScore === opponentScore) {
+                        currentUser.leaguePoints = (currentUser.leaguePoints || 0) + 1;
+                        currentUser.leagueDraws = (currentUser.leagueDraws || 0) + 1;
+                        
+                        if (opponent) {
+                            opponent.leaguePoints = (opponent.leaguePoints || 0) + 1;
+                            opponent.leagueDraws = (opponent.leagueDraws || 0) + 1;
+                        }
+                    } else {
+                        currentUser.leagueLosses = (currentUser.leagueLosses || 0) + 1;
+                        
+                        if (opponent) {
+                            opponent.leaguePoints = (opponent.leaguePoints || 0) + 3;
+                            opponent.leagueWins = (opponent.leagueWins || 0) + 1;
                         }
                     }
-                `;
-
-                const variables = {
-                    id: currentUser.id,
-                    displayName,
-                    metadata: {
-                        ...currentUser.metadata,
-                        country,
-                        efootballUser
+                    
+                    currentUser.leagueMatchesPlayed = (currentUser.leagueMatchesPlayed || 0) + 1;
+                    
+                    if (opponent) {
+                        opponent.leagueMatchesPlayed = (opponent.leagueMatchesPlayed || 0) + 1;
                     }
-                };
+                }
 
-                await makeGraphQLRequest(UPDATE_USER_MUTATION, variables);
+                // Update opponent in players array
+                if (opponent) {
+                    const oppIndex = players.findIndex(p => p.id === opponent.id);
+                    if (oppIndex !== -1) {
+                        players[oppIndex] = opponent;
+                    }
+                }
 
-                // Update local current user
-                currentUser.displayName = displayName;
-                currentUser.metadata = variables.metadata;
+                // Update current user in players array
+                const userIndex = players.findIndex(p => p.id === currentUser.id);
+                if (userIndex !== -1) {
+                    players[userIndex] = currentUser;
+                }
 
-                window.loadProfileData();
-                window.loadUserProfile();
+                localStorage.setItem('matches', JSON.stringify(matches));
+                localStorage.setItem('players', JSON.stringify(players));
 
-                window.showToast('Profile updated', 'success');
-                window.closeModal('editProfileModal');
-            } catch (error) {
-                window.showToast(error.message || 'Failed to update profile', 'error');
+                closeModal('resultModal');
+                updateStats();
+                loadActiveMatches();
+                updateFreePlayLeaderboard();
+                if (currentUser.league) {
+                    updateLeagueLeaderboard();
+                }
+                
+                showToast('✅ Result verified and recorded!', 'success');
+                
+                if (verification.warnings.length > 0) {
+                    verification.warnings.forEach(warning => {
+                        showToast('⚠️ ' + warning, 'warning');
+                    });
+                }
+            } else {
+                showToast('❌ ' + verification.issues.join(', '), 'error');
             }
-        };
+        }
 
-        window.showAdminModal = function() {
-            window.showToast('Admin functions coming soon', 'info');
-        };
+        // Chat Functions
+        function openChat(matchId) {
+            const match = matches.find(m => m.id === matchId);
+            if (!match) return;
 
-        // Start the app
-        document.addEventListener('DOMContentLoaded', initializeApp);
+            currentChatMatch = match;
+            const opponent = players.find(p => p.id === (match.player1 === currentUser.id ? match.player2 : match.player1));
+            
+            document.getElementById('chatOpponent').textContent = opponent ? opponent.efootballUser : 'Unknown';
+            document.getElementById('chatContainer').classList.add('active');
+            
+            loadChatMessages(matchId);
+        }
+
+        function closeChat() {
+            document.getElementById('chatContainer').classList.remove('active');
+            currentChatMatch = null;
+        }
+
+        function loadChatMessages(matchId) {
+            const messages = chatMessages.filter(m => m.matchId === matchId);
+            const container = document.getElementById('chatMessages');
+            
+            container.innerHTML = '';
+            
+            messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+                .forEach(msg => {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = `message ${msg.senderId === currentUser.id ? 'sent' : 'received'}`;
+                    messageDiv.innerHTML = `
+                        ${msg.text}<br>
+                        <small>${new Date(msg.timestamp).toLocaleTimeString()}</small>
+                    `;
+                    container.appendChild(messageDiv);
+                });
+            
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            
+            if (!text || !currentChatMatch) return;
+
+            const opponent = players.find(p => p.id === (currentChatMatch.player1 === currentUser.id ? currentChatMatch.player2 : currentChatMatch.player1));
+
+            const message = {
+                id: Date.now(),
+                matchId: currentChatMatch.id,
+                senderId: currentUser.id,
+                senderName: currentUser.efootballUser,
+                receiverId: opponent.id,
+                text: text,
+                timestamp: new Date().toISOString()
+            };
+
+            chatMessages.push(message);
+            localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
+
+            loadChatMessages(currentChatMatch.id);
+            input.value = '';
+        }
+
+        // Phase Winners Display
+        function updatePhaseWinnersDisplay() {
+            const freePlayTop3 = document.getElementById('freePlayPhaseTop3');
+            const leagueChampions = document.getElementById('leagueChampions');
+
+            // Free Play Top 3
+            const topFreePlay = players
+                .filter(p => p.role !== 'admin')
+                .sort((a, b) => (b.freePlayPoints || 0) - (a.freePlayPoints || 0))
+                .slice(0, 3);
+
+            if (topFreePlay.length === 0) {
+                freePlayTop3.innerHTML = '<p style="color: #b0b0b0;">No players yet</p>';
+            } else {
+                freePlayTop3.innerHTML = `
+                    <div class="podium">
+                        ${topFreePlay.map((player, index) => {
+                            const places = ['2nd', '1st', '3rd'];
+                            const podiumClass = index === 0 ? 'podium-2' : index === 1 ? 'podium-1' : 'podium-3';
+                            return `
+                                <div class="podium-place ${podiumClass}">
+                                    <div class="podium-card">
+                                        <div class="podium-rank">#${places[index]}</div>
+                                        <div><strong>${player.efootballUser}</strong></div>
+                                        <div>${player.country || 'N/A'}</div>
+                                        <div>${player.freePlayPoints || 0} pts</div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+
+            // League Champions
+            const leaguesWithChampions = Object.keys(LEAGUES)
+                .filter(leagueCode => {
+                    const leaguePlayers = players.filter(p => p.league === leagueCode && p.role !== 'admin');
+                    return leaguePlayers.length > 0;
+                })
+                .map(leagueCode => {
+                    const champion = players
+                        .filter(p => p.league === leagueCode && p.role !== 'admin')
+                        .sort((a, b) => (b.leaguePoints || 0) - (a.leaguePoints || 0))[0];
+                    
+                    return { league: LEAGUES[leagueCode].name, champion };
+                });
+
+            if (leaguesWithChampions.length === 0) {
+                leagueChampions.innerHTML = '<p style="color: #b0b0b0;">No league champions yet</p>';
+            } else {
+                leagueChampions.innerHTML = leaguesWithChampions.map(item => `
+                    <div style="margin: 0.5rem 0; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                        <strong style="color: #00d4ff;">${item.league}:</strong> 
+                        ${item.champion ? `${item.champion.efootballUser} (${item.champion.country || 'N/A'}) - ${item.champion.leaguePoints || 0} pts` : 'No champion yet'}
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Full Leaderboard
+        function showFullLeaderboard() {
+            const allPlayers = players
+                .filter(p => p.role !== 'admin')
+                .map(p => ({
+                    ...p,
+                    totalPoints: (p.freePlayPoints || 0) + (p.leaguePoints || 0),
+                    totalGoalsFor: (p.goalsFor || 0) + (p.leagueGoalsFor || 0),
+                    totalGoalsAgainst: (p.goalsAgainst || 0) + (p.leagueGoalsAgainst || 0),
+                    totalMatches: (p.matchesPlayed || 0) + (p.leagueMatchesPlayed || 0),
+                    totalWins: (p.wins || 0) + (p.leagueWins || 0),
+                    totalDraws: (p.draws || 0) + (p.leagueDraws || 0),
+                    totalLosses: (p.losses || 0) + (p.leagueLosses || 0)
+                }))
+                .sort((a, b) => {
+                    if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
+                    const gdA = (a.totalGoalsFor - a.totalGoalsAgainst);
+                    const gdB = (b.totalGoalsFor - b.totalGoalsAgainst);
+                    if (gdB !== gdA) return gdB - gdA;
+                    return b.totalGoalsFor - a.totalGoalsFor;
+                });
+
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 1000px;">
+                    <div class="modal-header">
+                        <h2>Overall Leaderboard</h2>
+                        <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+                    </div>
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Player</th>
+                                <th>Country</th>
+                                <th>P</th>
+                                <th>W</th>
+                                <th>D</th>
+                                <th>L</th>
+                                <th>GF</th>
+                                <th>GA</th>
+                                <th>GD</th>
+                                <th>Pts</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${allPlayers.map((player, index) => {
+                                const rowClass = index < 3 ? `rank-${index + 1}` : '';
+                                const gd = (player.totalGoalsFor || 0) - (player.totalGoalsAgainst || 0);
+                                return `
+                                <tr class="${rowClass}">
+                                    <td><strong>#${index + 1}</strong></td>
+                                    <td>${player.efootballUser}</td>
+                                    <td>${player.country || 'N/A'}</td>
+                                    <td>${player.totalMatches || 0}</td>
+                                    <td>${player.totalWins || 0}</td>
+                                    <td>${player.totalDraws || 0}</td>
+                                    <td>${player.totalLosses || 0}</td>
+                                    <td>${player.totalGoalsFor || 0}</td>
+                                    <td>${player.totalGoalsAgainst || 0}</td>
+                                    <td>${gd}</td>
+                                    <td><strong style="color: #00d4ff;">${player.totalPoints}</strong></td>
+                                </tr>
+                            `}).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Admin Functions
+        function showAdminModal() {
+            if (!currentUser || currentUser.role !== 'admin') {
+                showToast('Unauthorized', 'error');
+                return;
+            }
+            
+            loadAdminData();
+            document.getElementById('adminModal').classList.add('active');
+        }
+
+        function loadAdminData() {
+            // Load players
+            const playersBody = document.getElementById('adminPlayersBody');
+            playersBody.innerHTML = players
+                .filter(p => p.role !== 'admin')
+                .map(player => `
+                    <tr>
+                        <td>${player.id}</td>
+                        <td>${player.name}</td>
+                        <td>${player.email}</td>
+                        <td>${player.country || 'N/A'}</td>
+                        <td><span class="status-badge status-${player.status || 'active'}">${player.status || 'active'}</span></td>
+                        <td>${player.freePlayPoints || 0}</td>
+                        <td>${player.leaguePoints || 0}</td>
+                        <td class="admin-controls">
+                            <button class="btn btn-warning" onclick="suspendPlayer(${player.id})">${player.status === 'suspended' ? 'Unsuspend' : 'Suspend'}</button>
+                            <button class="btn btn-danger" onclick="blockPlayer(${player.id})">${player.status === 'blocked' ? 'Unblock' : 'Block'}</button>
+                            <button class="btn btn-danger" onclick="removePlayer(${player.id})">Remove</button>
+                            <button class="btn btn-primary" onclick="openDeductPointsModal(${player.id}, '${player.name}')">Deduct Points</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+            // Load matches
+            const matchesBody = document.getElementById('adminMatchesBody');
+            matchesBody.innerHTML = matches
+                .filter(m => m.status === 'completed')
+                .map(match => {
+                    const player1 = players.find(p => p.id === match.player1);
+                    const player2 = players.find(p => p.id === match.player2);
+                    return `
+                        <tr>
+                            <td>${match.id}</td>
+                            <td>${player1?.efootballUser || 'Unknown'} vs ${player2?.efootballUser || 'Unknown'}</td>
+                            <td>${match.result?.player1Score || 0} - ${match.result?.player2Score || 0}</td>
+                            <td>${new Date(match.createdAt).toLocaleDateString()}</td>
+                            <td><span class="status-badge status-active">Completed</span></td>
+                            <td>
+                                <button class="btn btn-warning" onclick="revertMatch('${match.id}')">Revert</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+            // Load leagues
+            const leaguesBody = document.getElementById('adminLeaguesBody');
+            leaguesBody.innerHTML = Object.keys(LEAGUES).map(leagueCode => {
+                const leaguePlayers = players.filter(p => p.league === leagueCode && p.role !== 'admin');
+                const leader = leaguePlayers.sort((a, b) => (b.leaguePoints || 0) - (a.leaguePoints || 0))[0];
+                return `
+                    <tr>
+                        <td><strong style="color: #00d4ff;">${LEAGUES[leagueCode].name}</strong></td>
+                        <td>${leaguePlayers.length}/${LEAGUES[leagueCode].teams}</td>
+                        <td>${leaguePlayers.length === LEAGUES[leagueCode].teams ? 
+                            '<span class="status-badge status-active">Full</span>' : 
+                            '<span class="status-badge status-suspended">Open</span>'}</td>
+                        <td>${leader ? `${leader.efootballUser} (${leader.leaguePoints || 0} pts)` : 'No players'}</td>
+                        <td>
+                            <button class="btn btn-primary" onclick="viewLeagueDetails('${leagueCode}')">View</button>
+                            <button class="btn btn-warning" onclick="resetLeague('${leagueCode}')">Reset</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Load phase winners
+            const phaseWinnersList = document.getElementById('phaseWinnersList');
+            if (phaseWinners.freePlay.length === 0) {
+                phaseWinnersList.innerHTML = '<p style="color: #b0b0b0;">No previous phases</p>';
+            } else {
+                phaseWinnersList.innerHTML = phaseWinners.freePlay.map((phase, index) => `
+                    <div style="margin: 1rem 0; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                        <strong style="color: #00d4ff;">Phase ${phase.phase}</strong> - ${new Date(phase.date).toLocaleDateString()}
+                        <br>Winners: ${phase.winners.join(', ')}
+                    </div>
+                `).join('');
+            }
+
+            // Load points deduction dropdown
+            const pointsSelect = document.getElementById('pointsPlayerSelect');
+            pointsSelect.innerHTML = '<option value="">Choose a player...</option>' + 
+                players.filter(p => p.role !== 'admin').map(p => 
+                    `<option value="${p.id}">${p.name} (${p.efootballUser})</option>`
+                ).join('');
+        }
+
+        function switchAdminTab(tab) {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`admin${tab.charAt(0).toUpperCase() + tab.slice(1)}Tab`).classList.add('active');
+        }
+
+        function suspendPlayer(playerId) {
+            const player = players.find(p => p.id === playerId);
+            if (player) {
+                player.status = player.status === 'suspended' ? 'active' : 'suspended';
+                localStorage.setItem('players', JSON.stringify(players));
+                loadAdminData();
+                showToast(`Player ${player.name} ${player.status === 'suspended' ? 'suspended' : 'activated'}`, 'success');
+            }
+        }
+
+        function blockPlayer(playerId) {
+            const player = players.find(p => p.id === playerId);
+            if (player) {
+                player.status = player.status === 'blocked' ? 'active' : 'blocked';
+                localStorage.setItem('players', JSON.stringify(players));
+                loadAdminData();
+                showToast(`Player ${player.name} ${player.status === 'blocked' ? 'blocked' : 'unblocked'}`, 'success');
+            }
+        }
+
+        function removePlayer(playerId) {
+            if (confirm('Are you sure you want to remove this player?')) {
+                players = players.filter(p => p.id !== playerId);
+                localStorage.setItem('players', JSON.stringify(players));
+                loadAdminData();
+                showToast('Player removed', 'info');
+            }
+        }
+
+        function openDeductPointsModal(playerId, playerName) {
+            document.getElementById('deductPlayerId').value = playerId;
+            document.getElementById('deductPlayerName').value = playerName;
+            document.getElementById('deductAmount').value = '';
+            document.getElementById('deductReason').value = '';
+            document.getElementById('deductPointsModal').classList.add('active');
+        }
+
+        function deductPointsFromModal(event) {
+            event.preventDefault();
+
+            const playerId = parseInt(document.getElementById('deductPlayerId').value);
+            const amount = parseInt(document.getElementById('deductAmount').value);
+            const reason = document.getElementById('deductReason').value;
+
+            const player = players.find(p => p.id === playerId);
+            if (player) {
+                player.freePlayPoints = Math.max(0, (player.freePlayPoints || 0) - amount);
+                localStorage.setItem('players', JSON.stringify(players));
+                
+                closeModal('deductPointsModal');
+                loadAdminData();
+                updateFreePlayLeaderboard();
+                showToast(`Deducted ${amount} points from ${player.name}`, 'warning');
+            }
+        }
+
+        function loadPlayerForDeduction() {
+            const playerId = parseInt(document.getElementById('pointsPlayerSelect').value);
+            if (!playerId) {
+                document.getElementById('deductionForm').style.display = 'none';
+                return;
+            }
+
+            const player = players.find(p => p.id === playerId);
+            if (player) {
+                document.getElementById('pointsPlayerName').value = player.name;
+                document.getElementById('pointsCurrentFree').value = player.freePlayPoints || 0;
+                document.getElementById('pointsCurrentLeague').value = player.leaguePoints || 0;
+                document.getElementById('deductionForm').style.display = 'block';
+            }
+        }
+
+        function deductPoints() {
+            const playerId = parseInt(document.getElementById('pointsPlayerSelect').value);
+            const type = document.getElementById('pointsType').value;
+            const amount = parseInt(document.getElementById('pointsAmount').value);
+            const reason = document.getElementById('pointsReason').value;
+
+            if (!playerId || !amount || !reason) {
+                showToast('Please fill all fields', 'error');
+                return;
+            }
+
+            const player = players.find(p => p.id === playerId);
+            if (player) {
+                if (type === 'free' || type === 'both') {
+                    player.freePlayPoints = Math.max(0, (player.freePlayPoints || 0) - amount);
+                }
+                if (type === 'league' || type === 'both') {
+                    player.leaguePoints = Math.max(0, (player.leaguePoints || 0) - amount);
+                }
+                
+                localStorage.setItem('players', JSON.stringify(players));
+                
+                // Log the deduction
+                console.log(`Deducted ${amount} ${type} points from ${player.name}. Reason: ${reason}`);
+                
+                loadAdminData();
+                updateFreePlayLeaderboard();
+                if (player.league) updateLeagueLeaderboard();
+                
+                showToast(`Deducted ${amount} points from ${player.name}`, 'warning');
+                
+                // Reset form
+                document.getElementById('pointsPlayerSelect').value = '';
+                document.getElementById('deductionForm').style.display = 'none';
+                document.getElementById('pointsAmount').value = '';
+                document.getElementById('pointsReason').value = '';
+            }
+        }
+
+        function revertMatch(matchId) {
+            if (confirm('Are you sure you want to revert this match? Points will be recalculated.')) {
+                const match = matches.find(m => m.id === matchId);
+                if (match) {
+                    match.status = 'pending';
+                    match.result = null;
+                    localStorage.setItem('matches', JSON.stringify(matches));
+                    loadAdminData();
+                    showToast('Match reverted', 'info');
+                }
+            }
+        }
+
+        function viewLeagueDetails(leagueCode) {
+            const leaguePlayers = players.filter(p => p.league === leagueCode && p.role !== 'admin')
+                .sort((a, b) => (b.leaguePoints || 0) - (a.leaguePoints || 0));
+
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 800px;">
+                    <div class="modal-header">
+                        <h2>${LEAGUES[leagueCode].name} Details</h2>
+                        <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+                    </div>
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Player</th>
+                                <th>Country</th>
+                                <th>P</th>
+                                <th>W</th>
+                                <th>D</th>
+                                <th>L</th>
+                                <th>GF</th>
+                                <th>GA</th>
+                                <th>GD</th>
+                                <th>Pts</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${leaguePlayers.map((player, index) => `
+                                <tr>
+                                    <td><strong>#${index + 1}</strong></td>
+                                    <td>${player.efootballUser}</td>
+                                    <td>${player.country || 'N/A'}</td>
+                                    <td>${player.leagueMatchesPlayed || 0}</td>
+                                    <td>${player.leagueWins || 0}</td>
+                                    <td>${player.leagueDraws || 0}</td>
+                                    <td>${player.leagueLosses || 0}</td>
+                                    <td>${player.leagueGoalsFor || 0}</td>
+                                    <td>${player.leagueGoalsAgainst || 0}</td>
+                                    <td>${(player.leagueGoalsFor || 0) - (player.leagueGoalsAgainst || 0)}</td>
+                                    <td><strong style="color: #00d4ff;">${player.leaguePoints || 0}</strong></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function resetLeague(leagueCode) {
+            if (confirm(`Reset ${LEAGUES[leagueCode].name}? All stats will be cleared.`)) {
+                const leaguePlayers = players.filter(p => p.league === leagueCode);
+                leaguePlayers.forEach(player => {
+                    player.leaguePoints = 0;
+                    player.leagueMatchesPlayed = 0;
+                    player.leagueWins = 0;
+                    player.leagueDraws = 0;
+                    player.leagueLosses = 0;
+                    player.leagueGoalsFor = 0;
+                    player.leagueGoalsAgainst = 0;
+                });
+                localStorage.setItem('players', JSON.stringify(players));
+                loadAdminData();
+                if (currentUser?.league === leagueCode) {
+                    updateLeagueLeaderboard();
+                }
+                showToast('League reset', 'success');
+            }
+        }
+
+        function endFreePlayPhase() {
+            if (confirm('End current phase and declare winners?')) {
+                const top3 = players
+                    .filter(p => p.role !== 'admin')
+                    .sort((a, b) => (b.freePlayPoints || 0) - (a.freePlayPoints || 0))
+                    .slice(0, 3)
+                    .map(p => `${p.efootballUser} (${p.country || 'N/A'})`);
+
+                if (!phaseWinners.freePlay) phaseWinners.freePlay = [];
+                phaseWinners.freePlay.push({
+                    phase: currentPhase.number,
+                    winners: top3,
+                    date: new Date().toISOString()
+                });
+
+                // Reset free play points for new phase
+                players.forEach(p => {
+                    if (p.role !== 'admin') {
+                        p.freePlayPoints = 0;
+                        p.matchesPlayed = 0;
+                        p.wins = 0;
+                        p.draws = 0;
+                        p.losses = 0;
+                        p.goalsFor = 0;
+                        p.goalsAgainst = 0;
+                    }
+                });
+
+                currentPhase.number++;
+                localStorage.setItem('phaseWinners', JSON.stringify(phaseWinners));
+                localStorage.setItem('currentPhase', JSON.stringify(currentPhase));
+                localStorage.setItem('players', JSON.stringify(players));
+
+                document.getElementById('currentPhase').value = `Phase ${currentPhase.number}`;
+                loadAdminData();
+                updateFreePlayLeaderboard();
+                updatePhaseWinnersDisplay();
+                
+                showToast('Phase ended! Winners recorded.', 'success');
+            }
+        }
+
+        function resetAllPhases() {
+            if (confirm('Reset all phase history? This cannot be undone.')) {
+                phaseWinners = { freePlay: [], leagues: {} };
+                currentPhase = { number: 1, startDate: new Date().toISOString() };
+                localStorage.setItem('phaseWinners', JSON.stringify(phaseWinners));
+                localStorage.setItem('currentPhase', JSON.stringify(currentPhase));
+                
+                document.getElementById('currentPhase').value = 'Phase 1';
+                loadAdminData();
+                updatePhaseWinnersDisplay();
+                showToast('All phases reset', 'info');
+            }
+        }
+
+        // Profile Functions
+        function showEditProfile() {
+            document.getElementById('editName').value = currentUser.name;
+            document.getElementById('editCountrySearch').value = currentUser.country || '';
+            document.getElementById('editCountry').value = currentUser.country || '';
+            document.getElementById('editEfootball').value = currentUser.efootballUser;
+            document.getElementById('editProfileModal').classList.add('active');
+        }
+
+        function updateProfile(event) {
+            event.preventDefault();
+
+            const country = document.getElementById('editCountry').value;
+            if (!country) {
+                showToast('Please select your country', 'error');
+                return;
+            }
+
+            currentUser.name = document.getElementById('editName').value;
+            currentUser.country = country;
+            currentUser.efootballUser = document.getElementById('editEfootball').value;
+
+            const index = players.findIndex(p => p.id === currentUser.id);
+            if (index !== -1) {
+                players[index] = currentUser;
+                localStorage.setItem('players', JSON.stringify(players));
+            }
+
+            closeModal('editProfileModal');
+            showProfile();
+            updateFreePlayLeaderboard();
+            if (currentUser.league) updateLeagueLeaderboard();
+            showToast('Profile updated successfully', 'success');
+        }
+
+        // Modal Functions
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.add('active');
+        }
+
+        function showRegisterModal() {
+            populateCountries();
+            document.getElementById('registerModal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function switchToLogin() {
+            closeModal('registerModal');
+            showLoginModal();
+        }
+
+        function switchToRegister() {
+            closeModal('loginModal');
+            showRegisterModal();
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.getElementById('toastContainer').appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Click outside to close country lists
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.country-search')) {
+                document.getElementById('countryList')?.classList.remove('active');
+                document.getElementById('editCountryList')?.classList.remove('active');
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeAdmin();
+            populateCountries();
+        });
     </script>
 </body>
 </html>
