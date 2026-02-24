@@ -189,6 +189,17 @@
             font-weight: bold;
         }
 
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: 2px solid #00d4ff;
+            color: #00d4ff;
+            font-size: 1.5rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
         .mode-selection {
             display: flex;
             gap: 2rem;
@@ -756,10 +767,6 @@
         }
 
         @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-            
             .mode-selection {
                 flex-direction: column;
                 align-items: center;
@@ -793,14 +800,43 @@
             .leaderboard-table td {
                 padding: 0.5rem;
             }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 70px;
+                left: 0;
+                width: 100%;
+                background: rgba(10, 15, 30, 0.98);
+                padding: 2rem;
+                gap: 1.5rem;
+                border-bottom: 2px solid #00d4ff;
+                box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .nav-links button {
+                width: 100%;
+                margin-left: 0 !important;
+            }
         }
+
     </style>
 </head>
 <body>
     <!-- Navbar -->
     <nav class="navbar">
         <span class="logo" onclick="showHome()">Donmac Efootball</span>
-        <div class="nav-links">
+        <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+        <div class="nav-links" id="navLinks">
             <a onclick="showHome()">Home</a>
             <a onclick="showFreePlay()">Free Play</a>
             <a onclick="showLeagues()">Leagues</a>
@@ -913,14 +949,19 @@
             <!-- League Section -->
             <div id="leagueSection" style="display: none;">
                 <div class="welcome-card">
-                    <h3>Available Leagues</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3>Available Leagues</h3>
+                        <button class="btn btn-secondary" onclick="showHome()">← Back to Dashboard</button>
+                    </div>
                     <div class="league-grid" id="leagueList"></div>
                 </div>
 
                 <!-- League Standings -->
                 <div id="leagueStandings" style="display: none;">
                     <div class="welcome-card">
-                        <h3>Your League Standings</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h3>Your League Standings</h3>
+                        </div>
                         <table class="leaderboard-table" id="leagueLeaderboard">
                             <thead>
                                 <tr>
@@ -947,7 +988,10 @@
         <!-- Profile Page -->
         <div id="profilePage" style="display: none;">
             <div class="welcome-card">
-                <h2>Player Profile</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2>Player Profile</h2>
+                    <button class="btn btn-secondary" onclick="showHome()">← Back to Dashboard</button>
+                </div>
                 <div class="stats-grid">
                     <div class="stat-card">
                         <h3>Name</h3>
@@ -1223,6 +1267,10 @@
                     <button class="btn btn-danger" onclick="deductPoints()">Deduct Points</button>
                 </div>
             </div>
+
+            <div style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem; text-align: right;">
+                <button class="btn btn-secondary" onclick="closeModal('adminModal')">Close Admin Dashboard</button>
+            </div>
         </div>
     </div>
 
@@ -1297,8 +1345,110 @@
     <!-- Toast Container -->
     <div id="toastContainer"></div>
 
+    <script>
+        // UI Navigation functions (non-module to ensure responsiveness even if SDK is loading)
+        window.toggleMobileMenu = function() {
+            const navLinks = document.getElementById('navLinks');
+            if (navLinks) navLinks.classList.toggle('active');
+        };
+
+        window.closeMobileMenu = function() {
+            const navLinks = document.getElementById('navLinks');
+            if (navLinks) navLinks.classList.remove('active');
+        };
+
+        window.showSection = function(sectionId) {
+            window.closeMobileMenu();
+            const sections = ['heroSection', 'dashboard', 'profilePage'];
+            sections.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.classList.remove('active');
+                    if (id !== 'dashboard') element.style.display = 'none';
+                }
+            });
+
+            if (sectionId === 'dashboard') {
+                const target = document.getElementById('dashboard');
+                if (target) target.classList.add('active');
+            } else {
+                const target = document.getElementById(sectionId);
+                if (target) {
+                    target.style.display = (sectionId === 'heroSection') ? 'flex' : 'block';
+                }
+            }
+        };
+
+        window.showHome = () => {
+            if (window.currentUser) {
+                window.showSection('dashboard');
+                if (window.switchMode) window.switchMode('freeplay');
+            } else {
+                window.showSection('heroSection');
+            }
+        };
+
+        window.showFreePlay = () => {
+            if (!window.currentUser) {
+                if (window.showToast) window.showToast('Please login first', 'warning');
+                window.showLoginModal();
+                return;
+            }
+            window.showSection('dashboard');
+            if (window.switchMode) window.switchMode('freeplay');
+        };
+
+        window.showLeagues = () => {
+            if (!window.currentUser) {
+                if (window.showToast) window.showToast('Please login first', 'warning');
+                window.showLoginModal();
+                return;
+            }
+            window.showSection('dashboard');
+            if (window.switchMode) window.switchMode('league');
+        };
+
+        window.showProfile = () => {
+            if (!window.currentUser) {
+                if (window.showToast) window.showToast('Please login first', 'warning');
+                window.showLoginModal();
+                return;
+            }
+            window.showSection('profilePage');
+            if (window.updateProfileDisplay) window.updateProfileDisplay();
+        };
+
+        window.showLoginModal = function() {
+            window.closeMobileMenu();
+            const modal = document.getElementById('loginModal');
+            if (modal) modal.classList.add('active');
+        };
+
+        window.showRegisterModal = function() {
+            window.closeMobileMenu();
+            const modal = document.getElementById('registerModal');
+            if (modal) modal.classList.add('active');
+            if (window.populateCountries) window.populateCountries();
+        };
+
+        window.closeModal = function(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.remove('active');
+        };
+
+        window.showToast = function(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        };
+    </script>
+
     <script type="module">
-        import { NhostClient } from 'https://cdn.jsdelivr.net/npm/@nhost/nhost-js/dist/index.esm.js';
+        import { NhostClient } from 'https://cdn.jsdelivr.net/npm/@nhost/nhost-js@2.1.1/+esm';
 
         const nhost = new NhostClient({
             subdomain: 'kodpbmemmbmbzuocnlbh',
@@ -1340,11 +1490,11 @@
         };
 
         // State
-        let currentUser = null;
+        window.currentUser = null;
 
         nhost.auth.onAuthStateChanged((event, session) => {
             if (session) {
-                currentUser = {
+                window.currentUser = {
                     ...session.user,
                     name: session.user.displayName,
                     ...session.user.metadata
@@ -1363,7 +1513,7 @@
                 }
 
                 document.getElementById('playerName').textContent = currentUser.displayName || currentUser.email;
-                document.getElementById('playerStatus').textContent = currentUser.metadata.league ?
+                document.getElementById('playerStatus').textContent = currentUser.metadata?.league ?
                     `Currently in ${LEAGUES[currentUser.metadata.league].name}` : 'Not in any league';
 
                 updateStats();
@@ -1536,7 +1686,16 @@
         const aiVerifier = new AIVerifier();
 
         // Navigation Functions
+        function toggleMobileMenu() {
+            document.getElementById('navLinks').classList.toggle('active');
+        }
+
+        function closeMobileMenu() {
+            document.getElementById('navLinks').classList.remove('active');
+        }
+
         function showHome() {
+            closeMobileMenu();
             if (currentUser) {
                 document.getElementById('heroSection').style.display = 'none';
                 document.getElementById('dashboard').classList.add('active');
@@ -1550,6 +1709,7 @@
         }
 
         function showFreePlay() {
+            closeMobileMenu();
             if (!currentUser) {
                 showToast('Please login first', 'warning');
                 showLoginModal();
@@ -1562,6 +1722,7 @@
         }
 
         function showLeagues() {
+            closeMobileMenu();
             if (!currentUser) {
                 showToast('Please login first', 'warning');
                 showLoginModal();
@@ -1574,6 +1735,7 @@
         }
 
         function showLeaderboard() {
+            closeMobileMenu();
             if (!currentUser) {
                 showToast('Please login first', 'warning');
                 showLoginModal();
@@ -1582,18 +1744,10 @@
             showFullLeaderboard();
         }
 
-        function showProfile() {
-            if (!currentUser) {
-                showToast('Please login first', 'warning');
-                showLoginModal();
-                return;
-            }
+        function updateProfileDisplay() {
+            if (!window.currentUser) return;
             
-            document.getElementById('heroSection').style.display = 'none';
-            document.getElementById('dashboard').classList.remove('active');
-            document.getElementById('profilePage').style.display = 'block';
-            
-            const m = currentUser.metadata || {};
+            const m = window.currentUser.metadata || {};
             document.getElementById('profileName').textContent = currentUser.displayName || currentUser.email;
             document.getElementById('profileCountry').textContent = m.country || 'Not set';
             document.getElementById('profileEfootball').textContent = m.efootballUser || 'Not set';
@@ -1622,7 +1776,7 @@
             
             if (mode === 'league') {
                 loadLeagues();
-                if (currentUser.metadata.league) {
+                if (currentUser?.metadata?.league) {
                     document.getElementById('leagueStandings').style.display = 'block';
                     updateLeagueLeaderboard();
                 } else {
@@ -1690,6 +1844,7 @@
         }
 
         async function logout() {
+            closeMobileMenu();
             const { error } = await nhost.auth.signOut();
             if (error) {
                 showToast(error.message, 'error');
@@ -1701,9 +1856,9 @@
         }
 
         function updateStats() {
-            if (!currentUser || !currentUser.metadata) return;
+            if (!currentUser) return;
+            const m = currentUser.metadata || {};
 
-            const m = currentUser.metadata;
             document.getElementById('freePlayPoints').textContent = m.freePlayPoints || 0;
             document.getElementById('leaguePoints').textContent = m.leaguePoints || 0;
             document.getElementById('totalMatches').textContent = (m.matchesPlayed || 0) + (m.leagueMatchesPlayed || 0);
@@ -1938,7 +2093,7 @@
         }
 
         async function updateLeagueLeaderboard() {
-            if (!currentUser.metadata?.league) return;
+            if (!currentUser?.metadata?.league) return;
 
             try {
                 const query = `
@@ -2404,7 +2559,8 @@
 
         // Admin Functions
         function showAdminModal() {
-            if (!currentUser || currentUser.metadata.role !== 'admin') {
+            closeMobileMenu();
+            if (!currentUser || currentUser.metadata?.role !== 'admin') {
                 showToast('Unauthorized', 'error');
                 return;
             }
@@ -2976,10 +3132,12 @@
 
         // Modal Functions
         function showLoginModal() {
+            closeMobileMenu();
             document.getElementById('loginModal').classList.add('active');
         }
 
         function showRegisterModal() {
+            closeMobileMenu();
             populateCountries();
             document.getElementById('registerModal').classList.add('active');
         }
@@ -2998,13 +3156,6 @@
             showRegisterModal();
         }
 
-        function showToast(message, type = 'info') {
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.textContent = message;
-            document.getElementById('toastContainer').appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
 
         // Click outside to close country lists
         document.addEventListener('click', (e) => {
@@ -3022,8 +3173,7 @@
 
         // Expose functions to window for HTML event handlers
         Object.assign(window, {
-            showHome, showFreePlay, showLeagues, showLeaderboard, showProfile,
-            showLoginModal, showRegisterModal, logout, showAdminModal,
+            showLeaderboard, logout, showAdminModal,
             switchMode, handleRegister, handleLogin, findOpponent,
             openResultModal, openChat, submitResult, sendMessage,
             switchAdminTab, suspendPlayer, blockPlayer, removePlayer,
