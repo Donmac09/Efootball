@@ -1297,7 +1297,25 @@
     <!-- Toast Container -->
     <div id="toastContainer"></div>
 
-    <script>
+    <script type="module">
+        import { NhostClient } from 'https://cdn.jsdelivr.net/npm/@nhost/nhost-js/dist/index.esm.js';
+
+        const nhost = new NhostClient({
+            subdomain: 'kodpbmemmbmbzuocnlbh',
+            region: 'us-east-1'
+        });
+
+        window.nhost = nhost;
+
+        async function graphql(query, variables = {}) {
+            const { data, error } = await nhost.graphql.request(query, variables);
+            if (error) {
+                console.error('GraphQL Error:', error);
+                throw error;
+            }
+            return data;
+        }
+
         // All countries that play eFootball
         const COUNTRIES = [
             "Argentina", "Australia", "Austria", "Belgium", "Brazil", "Bulgaria", "Canada", 
@@ -1323,50 +1341,52 @@
 
         // State
         let currentUser = null;
-        let players = JSON.parse(localStorage.getItem('players')) || [];
-        let matches = JSON.parse(localStorage.getItem('matches')) || [];
-        let chatMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
-        let submittedScreenshots = JSON.parse(localStorage.getItem('submittedScreenshots')) || [];
-        let phaseWinners = JSON.parse(localStorage.getItem('phaseWinners')) || { freePlay: [], leagues: {} };
-        let currentPhase = JSON.parse(localStorage.getItem('currentPhase')) || { number: 1, startDate: new Date().toISOString() };
+
+        nhost.auth.onAuthStateChanged((event, session) => {
+            if (session) {
+                currentUser = {
+                    ...session.user,
+                    name: session.user.displayName,
+                    ...session.user.metadata
+                };
+
+                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('registerBtn').style.display = 'none';
+                document.getElementById('logoutBtn').style.display = 'inline-block';
+
+                // For this implementation, we'll check admin by email
+                const adminEmails = ['donmacdatahub@gmail.com', 'donmacadmin@efootball.com'];
+                if (adminEmails.includes(currentUser.email)) {
+                    document.getElementById('adminBtn').style.display = 'inline-block';
+                } else {
+                    document.getElementById('adminBtn').style.display = 'none';
+                }
+
+                document.getElementById('playerName').textContent = currentUser.displayName || currentUser.email;
+                document.getElementById('playerStatus').textContent = currentUser.metadata.league ?
+                    `Currently in ${LEAGUES[currentUser.metadata.league].name}` : 'Not in any league';
+
+                updateStats();
+                loadActiveMatches();
+                updateFreePlayLeaderboard();
+                updatePhaseWinnersDisplay();
+
+                showHome();
+            } else {
+                currentUser = null;
+                document.getElementById('loginBtn').style.display = 'inline-block';
+                document.getElementById('registerBtn').style.display = 'inline-block';
+                document.getElementById('logoutBtn').style.display = 'none';
+                document.getElementById('adminBtn').style.display = 'none';
+
+                showHome();
+            }
+        });
+
         let currentChatMatch = null;
 
-        // Admin credentials
-        const ADMIN_EMAIL = 'donmacadmin@efootball.com';
-        const ADMIN_PASSWORD = 'Admin@123';
-
-        // Initialize admin
-        function initializeAdmin() {
-            if (!players.some(p => p.email === ADMIN_EMAIL)) {
-                players.push({
-                    id: 1,
-                    name: 'Admin',
-                    email: ADMIN_EMAIL,
-                    password: ADMIN_PASSWORD,
-                    efootballUser: 'Admin',
-                    country: 'Admin',
-                    league: null,
-                    role: 'admin',
-                    status: 'active',
-                    freePlayPoints: 0,
-                    leaguePoints: 0,
-                    matchesPlayed: 0,
-                    wins: 0,
-                    draws: 0,
-                    losses: 0,
-                    goalsFor: 0,
-                    goalsAgainst: 0,
-                    leagueMatchesPlayed: 0,
-                    leagueWins: 0,
-                    leagueDraws: 0,
-                    leagueLosses: 0,
-                    leagueGoalsFor: 0,
-                    leagueGoalsAgainst: 0,
-                    registeredAt: new Date().toISOString()
-                });
-                localStorage.setItem('players', JSON.stringify(players));
-            }
-        }
+        // Initialize admin (No longer needed with Nhost Auth)
+        function initializeAdmin() {}
 
         // Populate country lists
         function populateCountries() {
@@ -1431,7 +1451,15 @@
         }
 
         // AI Image Analysis
-        function analyzeScreenshot(imageFile) {
+        async function analyzeScreenshot(imageFile) {
+            let existingHashes = [];
+            try {
+                const { submitted_screenshots } = await graphql(`query { submitted_screenshots { hash } }`);
+                existingHashes = submitted_screenshots.map(s => s.hash);
+            } catch (err) {
+                console.warn('Could not fetch existing screenshots from Nhost');
+            }
+
             return new Promise((resolve) => {
                 setTimeout(() => {
                     const fileReader = new FileReader();
@@ -1444,7 +1472,7 @@
                         }
                         const imageHash = hash.toString();
                         
-                        const isDuplicate = submittedScreenshots.some(s => s.hash === imageHash);
+                        const isDuplicate = existingHashes.includes(imageHash);
                         
                         // Simulate extracting scores from screenshot
                         const extractedScores = {
@@ -1565,22 +1593,23 @@
             document.getElementById('dashboard').classList.remove('active');
             document.getElementById('profilePage').style.display = 'block';
             
-            document.getElementById('profileName').textContent = currentUser.name;
-            document.getElementById('profileCountry').textContent = currentUser.country || 'Not set';
-            document.getElementById('profileEfootball').textContent = currentUser.efootballUser;
-            document.getElementById('profileLeague').textContent = currentUser.league ? LEAGUES[currentUser.league].name : 'Not in any league';
+            const m = currentUser.metadata || {};
+            document.getElementById('profileName').textContent = currentUser.displayName || currentUser.email;
+            document.getElementById('profileCountry').textContent = m.country || 'Not set';
+            document.getElementById('profileEfootball').textContent = m.efootballUser || 'Not set';
+            document.getElementById('profileLeague').textContent = m.league ? (LEAGUES[m.league]?.name || m.league) : 'Not in any league';
             
             // Profile stats
             document.getElementById('profileFreePlayStats').innerHTML = `
-                <p>P: ${currentUser.matchesPlayed || 0} | W: ${currentUser.wins || 0} | D: ${currentUser.draws || 0} | L: ${currentUser.losses || 0}</p>
-                <p>GF: ${currentUser.goalsFor || 0} | GA: ${currentUser.goalsAgainst || 0} | GD: ${(currentUser.goalsFor || 0) - (currentUser.goalsAgainst || 0)}</p>
-                <p>Points: ${currentUser.freePlayPoints || 0}</p>
+                <p>P: ${m.matchesPlayed || 0} | W: ${m.wins || 0} | D: ${m.draws || 0} | L: ${m.losses || 0}</p>
+                <p>GF: ${m.goalsFor || 0} | GA: ${m.goalsAgainst || 0} | GD: ${(m.goalsFor || 0) - (m.goalsAgainst || 0)}</p>
+                <p>Points: ${m.freePlayPoints || 0}</p>
             `;
             
             document.getElementById('profileLeagueStats').innerHTML = `
-                <p>P: ${currentUser.leagueMatchesPlayed || 0} | W: ${currentUser.leagueWins || 0} | D: ${currentUser.leagueDraws || 0} | L: ${currentUser.leagueLosses || 0}</p>
-                <p>GF: ${currentUser.leagueGoalsFor || 0} | GA: ${currentUser.leagueGoalsAgainst || 0} | GD: ${(currentUser.leagueGoalsFor || 0) - (currentUser.leagueGoalsAgainst || 0)}</p>
-                <p>Points: ${currentUser.leaguePoints || 0}</p>
+                <p>P: ${m.leagueMatchesPlayed || 0} | W: ${m.leagueWins || 0} | D: ${m.leagueDraws || 0} | L: ${m.leagueLosses || 0}</p>
+                <p>GF: ${m.leagueGoalsFor || 0} | GA: ${m.leagueGoalsAgainst || 0} | GD: ${(m.leagueGoalsFor || 0) - (m.leagueGoalsAgainst || 0)}</p>
+                <p>Points: ${m.leaguePoints || 0}</p>
             `;
         }
 
@@ -1593,7 +1622,7 @@
             
             if (mode === 'league') {
                 loadLeagues();
-                if (currentUser.league) {
+                if (currentUser.metadata.league) {
                     document.getElementById('leagueStandings').style.display = 'block';
                     updateLeagueLeaderboard();
                 } else {
@@ -1606,517 +1635,542 @@
         }
 
         // Authentication Functions
-        function handleRegister(event) {
+        async function handleRegister(event) {
             event.preventDefault();
 
             const email = document.getElementById('regEmail').value;
-            if (players.some(p => p.email === email)) {
-                showToast('Email already registered', 'error');
-                return;
-            }
-
+            const password = document.getElementById('regPassword').value;
+            const name = document.getElementById('regName').value;
+            const efootballUser = document.getElementById('regEfootball').value;
             const country = document.getElementById('regCountry').value;
+
             if (!country) {
                 showToast('Please select your country', 'error');
                 return;
             }
 
-            const newPlayer = {
-                id: players.length + 1,
-                name: document.getElementById('regName').value,
-                email: email,
-                password: document.getElementById('regPassword').value,
-                efootballUser: document.getElementById('regEfootball').value,
-                country: country,
-                league: null,
-                role: 'player',
-                status: 'active',
-                freePlayPoints: 0,
-                leaguePoints: 0,
-                matchesPlayed: 0,
-                wins: 0,
-                draws: 0,
-                losses: 0,
-                goalsFor: 0,
-                goalsAgainst: 0,
-                leagueMatchesPlayed: 0,
-                leagueWins: 0,
-                leagueDraws: 0,
-                leagueLosses: 0,
-                leagueGoalsFor: 0,
-                leagueGoalsAgainst: 0,
-                registeredAt: new Date().toISOString()
-            };
+            const { session, error } = await nhost.auth.signUp({
+                email,
+                password,
+                options: {
+                    displayName: name,
+                    metadata: {
+                        country,
+                        efootballUser,
+                        league: null,
+                        role: 'player',
+                        status: 'active'
+                    }
+                }
+            });
 
-            players.push(newPlayer);
-            localStorage.setItem('players', JSON.stringify(players));
-            
-            showToast('Registration successful! Please login.', 'success');
-            closeModal('registerModal');
-            showLoginModal();
+            if (error) {
+                showToast(error.message, 'error');
+            } else {
+                showToast('Registration successful! Please login.', 'success');
+                closeModal('registerModal');
+                showLoginModal();
+            }
         }
 
-        function handleLogin(event) {
+        async function handleLogin(event) {
             event.preventDefault();
 
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
 
-            const player = players.find(p => p.email === email && p.password === password);
+            const { session, error } = await nhost.auth.signInEmailPassword({ email, password });
             
-            if (player) {
-                if (player.status === 'blocked') {
-                    showToast('Your account has been blocked. Contact admin.', 'error');
-                    return;
-                }
-                
-                currentUser = player;
-                
-                document.getElementById('loginBtn').style.display = 'none';
-                document.getElementById('registerBtn').style.display = 'none';
-                document.getElementById('logoutBtn').style.display = 'inline-block';
-                
-                if (player.role === 'admin') {
-                    document.getElementById('adminBtn').style.display = 'inline-block';
-                } else {
-                    document.getElementById('adminBtn').style.display = 'none';
-                }
-                
-                document.getElementById('heroSection').style.display = 'none';
-                document.getElementById('dashboard').classList.add('active');
-                document.getElementById('profilePage').style.display = 'none';
-                
-                document.getElementById('playerName').textContent = player.name;
-                document.getElementById('playerStatus').textContent = player.league ? 
-                    `Currently in ${LEAGUES[player.league].name}` : 'Not in any league';
-                
-                updateStats();
-                loadActiveMatches();
-                updateFreePlayLeaderboard();
-                updatePhaseWinnersDisplay();
-                
-                showToast(`Welcome back, ${player.name}!`, 'success');
-                closeModal('loginModal');
-                
-                switchMode('freeplay');
+            if (error) {
+                showToast(error.message, 'error');
             } else {
-                showToast('Invalid email or password', 'error');
+                showToast(`Welcome back!`, 'success');
+                closeModal('loginModal');
             }
         }
 
-        function logout() {
-            currentUser = null;
-            currentChatMatch = null;
-            
-            document.getElementById('loginBtn').style.display = 'inline-block';
-            document.getElementById('registerBtn').style.display = 'inline-block';
-            document.getElementById('logoutBtn').style.display = 'none';
-            document.getElementById('adminBtn').style.display = 'none';
-            document.getElementById('chatContainer').classList.remove('active');
-            
-            document.getElementById('heroSection').style.display = 'flex';
-            document.getElementById('dashboard').classList.remove('active');
-            document.getElementById('profilePage').style.display = 'none';
-            
-            showToast('Logged out successfully', 'info');
+        async function logout() {
+            const { error } = await nhost.auth.signOut();
+            if (error) {
+                showToast(error.message, 'error');
+            } else {
+                currentChatMatch = null;
+                document.getElementById('chatContainer').classList.remove('active');
+                showToast('Logged out successfully', 'info');
+            }
         }
 
         function updateStats() {
-            if (!currentUser) return;
+            if (!currentUser || !currentUser.metadata) return;
 
-            document.getElementById('freePlayPoints').textContent = currentUser.freePlayPoints || 0;
-            document.getElementById('leaguePoints').textContent = currentUser.leaguePoints || 0;
-            document.getElementById('totalMatches').textContent = (currentUser.matchesPlayed || 0) + (currentUser.leagueMatchesPlayed || 0);
+            const m = currentUser.metadata;
+            document.getElementById('freePlayPoints').textContent = m.freePlayPoints || 0;
+            document.getElementById('leaguePoints').textContent = m.leaguePoints || 0;
+            document.getElementById('totalMatches').textContent = (m.matchesPlayed || 0) + (m.leagueMatchesPlayed || 0);
             
-            const goalDifference = ((currentUser.goalsFor || 0) - (currentUser.goalsAgainst || 0)) + 
-                                 ((currentUser.leagueGoalsFor || 0) - (currentUser.leagueGoalsAgainst || 0));
+            const goalDifference = ((m.goalsFor || 0) - (m.goalsAgainst || 0)) +
+                                 ((m.leagueGoalsFor || 0) - (m.leagueGoalsAgainst || 0));
             document.getElementById('goalDifference').textContent = goalDifference;
         }
 
         // Free Play Functions
-        function findOpponent() {
+        async function findOpponent() {
             showToast('Searching for opponents...', 'info');
             
-            setTimeout(() => {
-                const availableOpponents = players.filter(p => 
-                    p.id !== currentUser.id && 
-                    p.role !== 'admin' &&
-                    p.status === 'active'
-                );
-                
-                if (availableOpponents.length > 0) {
-                    const opponent = availableOpponents[Math.floor(Math.random() * availableOpponents.length)];
-                    
-                    const match = {
-                        id: 'M' + Date.now(),
-                        type: 'freeplay',
-                        player1: currentUser.id,
-                        player2: opponent.id,
-                        status: 'pending',
-                        createdAt: new Date().toISOString()
-                    };
-                    
-                    matches.push(match);
-                    localStorage.setItem('matches', JSON.stringify(matches));
-                    
-                    showToast(`Match found! Playing against ${opponent.efootballUser}`, 'success');
-                    loadActiveMatches();
-                } else {
+            try {
+                const queryUsers = `
+                    query GetAvailablePlayers($currentUserId: uuid!) {
+                        users(where: { id: { _neq: $currentUserId } }, limit: 10) {
+                            id
+                            displayName
+                            metadata
+                        }
+                    }
+                `;
+                const { users } = await graphql(queryUsers, { currentUserId: currentUser.id });
+
+                if (!users.length) {
                     showToast('No opponents available', 'warning');
+                    return;
                 }
-            }, 2000);
+
+                const opponent = users[Math.floor(Math.random() * users.length)];
+
+                const mutation = `
+                    mutation InsertMatch($player1Id: uuid!, $player2Id: uuid!, $type: String!) {
+                        insert_matches_one(object: {
+                            player1_id: $player1Id,
+                            player2_id: $player2Id,
+                            type: $type,
+                            status: "pending"
+                        }) {
+                            id
+                        }
+                    }
+                `;
+
+                await graphql(mutation, {
+                    player1Id: currentUser.id,
+                    player2Id: opponent.id,
+                    type: 'freeplay'
+                });
+
+                showToast(`Match found! Playing against ${opponent.metadata?.efootballUser || opponent.displayName}`, 'success');
+                loadActiveMatches();
+            } catch (err) {
+                showToast('Failed to find opponent', 'error');
+            }
         }
 
-        function loadActiveMatches() {
+        async function loadActiveMatches() {
             if (!currentUser) return;
 
-            const activeMatches = matches.filter(m => 
-                (m.player1 === currentUser.id || m.player2 === currentUser.id) && m.status === 'pending'
-            );
-
-            const container = document.getElementById('activeMatches');
-            
-            if (activeMatches.length === 0) {
-                container.innerHTML = '<p style="color: #b0b0b0;">No active matches. Click "Search for Opponent" to start playing!</p>';
-                return;
-            }
-
-            container.innerHTML = '<div class="match-grid"></div>';
-            const grid = container.querySelector('.match-grid');
-
-            activeMatches.forEach(match => {
-                const opponent = players.find(p => p.id === (match.player1 === currentUser.id ? match.player2 : match.player1));
-                
-                const card = document.createElement('div');
-                card.className = 'match-card';
-                card.innerHTML = `
-                    <h3>vs ${opponent ? opponent.efootballUser : 'Unknown'}</h3>
-                    <p style="color: #b0b0b0;">Match ID: ${match.id}</p>
-                    <div class="match-actions">
-                        <button class="btn btn-primary" onclick="openResultModal('${match.id}')">Submit Result</button>
-                        <button class="btn btn-secondary" onclick="openChat('${match.id}')">💬 Chat</button>
-                    </div>
+            try {
+                const query = `
+                    query GetActiveMatches($userId: uuid!) {
+                        matches(where: {
+                            _or: [
+                                { player1_id: { _eq: $userId } },
+                                { player2_id: { _eq: $userId } }
+                            ],
+                            status: { _eq: "pending" }
+                        }) {
+                            id
+                            player1_id
+                            player2_id
+                            type
+                            player1 { displayName metadata }
+                            player2 { displayName metadata }
+                        }
+                    }
                 `;
-                grid.appendChild(card);
-            });
+                const { matches: activeMatches } = await graphql(query, { userId: currentUser.id });
+
+                const container = document.getElementById('activeMatches');
+
+                if (activeMatches.length === 0) {
+                    container.innerHTML = '<p style="color: #b0b0b0;">No active matches. Click "Search for Opponent" to start playing!</p>';
+                    return;
+                }
+
+                container.innerHTML = '<div class="match-grid"></div>';
+                const grid = container.querySelector('.match-grid');
+
+                activeMatches.forEach(match => {
+                    const isPlayer1 = match.player1_id === currentUser.id;
+                    const opponent = isPlayer1 ? match.player2 : match.player1;
+                    const opponentName = opponent?.metadata?.efootballUser || opponent?.displayName || 'Unknown';
+
+                    const card = document.createElement('div');
+                    card.className = 'match-card';
+                    card.innerHTML = `
+                        <h3>vs ${opponentName}</h3>
+                        <p style="color: #b0b0b0;">Match ID: ${match.id}</p>
+                        <div class="match-actions">
+                            <button class="btn btn-primary" onclick="openResultModal('${match.id}')">Submit Result</button>
+                            <button class="btn btn-secondary" onclick="openChat('${match.id}')">💬 Chat</button>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            } catch (err) {
+                console.error('Failed to load active matches', err);
+            }
         }
 
         // Free Play Leaderboard
-        function updateFreePlayLeaderboard() {
-            const freePlayPlayers = players
-                .filter(p => p.role !== 'admin')
-                .map(p => ({
-                    ...p,
-                    totalPoints: p.freePlayPoints || 0,
-                    goalDifference: (p.goalsFor || 0) - (p.goalsAgainst || 0)
-                }))
-                .sort((a, b) => {
-                    if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
-                    if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
-                    return (b.goalsFor || 0) - (a.goalsFor || 0);
-                });
-
-            const tbody = document.getElementById('freePlayLeaderboardBody');
-            tbody.innerHTML = freePlayPlayers.map((player, index) => {
-                const rowClass = index < 3 ? `rank-${index + 1}` : '';
-                return `
-                    <tr class="${rowClass}">
-                        <td><strong>#${index + 1}</strong></td>
-                        <td>${player.efootballUser}</td>
-                        <td>${player.country || 'N/A'}</td>
-                        <td>${player.matchesPlayed || 0}</td>
-                        <td>${player.wins || 0}</td>
-                        <td>${player.draws || 0}</td>
-                        <td>${player.losses || 0}</td>
-                        <td>${player.goalsFor || 0}</td>
-                        <td>${player.goalsAgainst || 0}</td>
-                        <td>${(player.goalsFor || 0) - (player.goalsAgainst || 0)}</td>
-                        <td><strong style="color: #00d4ff;">${player.freePlayPoints || 0}</strong></td>
-                    </tr>
+        async function updateFreePlayLeaderboard() {
+            try {
+                const query = `
+                    query GetLeaderboard {
+                        free_play_leaderboard(order_by: {pts: desc, gd: desc, gf: desc}) {
+                            player_name
+                            country
+                            p
+                            w
+                            d
+                            l
+                            gf
+                            ga
+                            gd
+                            pts
+                        }
+                    }
                 `;
-            }).join('');
+                const { free_play_leaderboard } = await graphql(query);
+
+                const tbody = document.getElementById('freePlayLeaderboardBody');
+                tbody.innerHTML = free_play_leaderboard.map((player, index) => {
+                    const rowClass = index < 3 ? `rank-${index + 1}` : '';
+                    return `
+                        <tr class="${rowClass}">
+                            <td><strong>#${index + 1}</strong></td>
+                            <td>${player.player_name}</td>
+                            <td>${player.country || 'N/A'}</td>
+                            <td>${player.p}</td>
+                            <td>${player.w}</td>
+                            <td>${player.d}</td>
+                            <td>${player.l}</td>
+                            <td>${player.gf}</td>
+                            <td>${player.ga}</td>
+                            <td>${player.gd}</td>
+                            <td><strong style="color: #00d4ff;">${player.pts}</strong></td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error('Failed to update leaderboard', err);
+            }
         }
 
         // League Functions
-        function loadLeagues() {
-            const leagueList = document.getElementById('leagueList');
-            leagueList.innerHTML = '';
-
-            Object.keys(LEAGUES).forEach(leagueCode => {
-                const leaguePlayers = players.filter(p => p.league === leagueCode && p.role !== 'admin');
-                const isFull = leaguePlayers.length === LEAGUES[leagueCode].teams;
-                const isRegistered = currentUser.league === leagueCode;
-
-                const card = document.createElement('div');
-                card.className = 'league-card';
-                card.innerHTML = `
-                    <h3>${LEAGUES[leagueCode].name}</h3>
-                    <div class="teams">${leaguePlayers.length}/${LEAGUES[leagueCode].teams}</div>
-                    <div style="color: ${isFull ? '#f44336' : '#4caf50'}; margin: 0.5rem 0;">
-                        ${isFull ? '🔴 Full' : '🟢 Open'}
-                    </div>
-                    ${!currentUser.league && !isFull ? 
-                        `<button class="btn btn-primary" onclick="joinLeague('${leagueCode}')" style="margin-top: 1rem;">Join League</button>` : 
-                        isRegistered ? '<p style="color: #4caf50; margin-top: 1rem;">✓ You are in this league</p>' : ''}
-                    ${currentUser.league === leagueCode ? '<p style="color: #4caf50; margin-top: 1rem;">✓ Your current league</p>' : ''}
+        async function loadLeagues() {
+            try {
+                const query = `
+                    query GetLeagues {
+                        leagues {
+                            code
+                            name
+                            teams_limit
+                        }
+                        users {
+                            metadata
+                        }
+                    }
                 `;
-                leagueList.appendChild(card);
-            });
+                const { leagues, users } = await graphql(query);
+
+                const leagueList = document.getElementById('leagueList');
+                leagueList.innerHTML = '';
+
+                leagues.forEach(league => {
+                    const leaguePlayers = users.filter(u => u.metadata?.league === league.code);
+                    const isFull = leaguePlayers.length >= league.teams_limit;
+                    const isRegistered = currentUser.metadata?.league === league.code;
+
+                    const card = document.createElement('div');
+                    card.className = 'league-card';
+                    card.innerHTML = `
+                        <h3>${league.name}</h3>
+                        <div class="teams">${leaguePlayers.length}/${league.teams_limit}</div>
+                        <div style="color: ${isFull ? '#f44336' : '#4caf50'}; margin: 0.5rem 0;">
+                            ${isFull ? '🔴 Full' : '🟢 Open'}
+                        </div>
+                        ${!currentUser.metadata?.league && !isFull ?
+                            `<button class="btn btn-primary" onclick="joinLeague('${league.code}')" style="margin-top: 1rem;">Join League</button>` :
+                            isRegistered ? '<p style="color: #4caf50; margin-top: 1rem;">✓ You are in this league</p>' : ''}
+                        ${currentUser.metadata?.league === league.code ? '<p style="color: #4caf50; margin-top: 1rem;">✓ Your current league</p>' : ''}
+                    `;
+                    leagueList.appendChild(card);
+                });
+            } catch (err) {
+                console.error(err);
+            }
         }
 
-        function joinLeague(leagueCode) {
-            if (currentUser.league) {
+        async function joinLeague(leagueCode) {
+            if (currentUser.metadata?.league) {
                 showToast('You are already in a league', 'error');
                 return;
             }
 
-            const leaguePlayers = players.filter(p => p.league === leagueCode && p.role !== 'admin');
-            
-            if (leaguePlayers.length >= LEAGUES[leagueCode].teams) {
-                showToast('League is full', 'error');
-                return;
-            }
+            try {
+                const newMetadata = { ...currentUser.metadata, league: leagueCode };
+                const mutation = `
+                    mutation JoinLeague($id: uuid!, $metadata: jsonb!) {
+                        update_users_by_pk(pk_columns: { id: $id }, _set: { metadata: $metadata }) {
+                            id
+                        }
+                    }
+                `;
+                await graphql(mutation, { id: currentUser.id, metadata: newMetadata });
 
-            currentUser.league = leagueCode;
-            const index = players.findIndex(p => p.id === currentUser.id);
-            if (index !== -1) {
-                players[index].league = leagueCode;
-                localStorage.setItem('players', JSON.stringify(players));
-            }
+                currentUser.metadata = newMetadata;
+                await nhost.auth.refreshSession();
 
-            showToast(`Joined ${LEAGUES[leagueCode].name}!`, 'success');
-            loadLeagues();
-            document.getElementById('leagueStandings').style.display = 'block';
-            updateLeagueLeaderboard();
+                showToast(`Joined league!`, 'success');
+                loadLeagues();
+                document.getElementById('leagueStandings').style.display = 'block';
+                updateLeagueLeaderboard();
+            } catch (err) {
+                showToast('Failed to join league', 'error');
+            }
         }
 
-        function updateLeagueLeaderboard() {
-            if (!currentUser.league) return;
+        async function updateLeagueLeaderboard() {
+            if (!currentUser.metadata?.league) return;
 
-            const leaguePlayers = players
-                .filter(p => p.league === currentUser.league && p.role !== 'admin')
-                .map(p => ({
-                    ...p,
-                    totalPoints: p.leaguePoints || 0,
-                    goalDifference: (p.leagueGoalsFor || 0) - (p.leagueGoalsAgainst || 0)
-                }))
-                .sort((a, b) => {
-                    if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
-                    if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
-                    return (b.leagueGoalsFor || 0) - (a.leagueGoalsFor || 0);
+            try {
+                const query = `
+                    query GetLeagueLeaderboard($leagueCode: String!) {
+                        users(where: { metadata: { _contains: { league: $leagueCode } } }) {
+                            displayName
+                            metadata
+                        }
+                    }
+                `;
+                const { users } = await graphql(query, { leagueCode: currentUser.metadata.league });
+
+                const leaguePlayers = users.map(u => ({
+                    efootballUser: u.metadata?.efootballUser || u.displayName,
+                    country: u.metadata?.country,
+                    p: u.metadata?.leagueMatchesPlayed || 0,
+                    w: u.metadata?.leagueWins || 0,
+                    d: u.metadata?.leagueDraws || 0,
+                    l: u.metadata?.leagueLosses || 0,
+                    gf: u.metadata?.leagueGoalsFor || 0,
+                    ga: u.metadata?.leagueGoalsAgainst || 0,
+                    gd: (u.metadata?.leagueGoalsFor || 0) - (u.metadata?.leagueGoalsAgainst || 0),
+                    pts: u.metadata?.leaguePoints || 0
+                })).sort((a, b) => {
+                    if (b.pts !== a.pts) return b.pts - a.pts;
+                    if (b.gd !== a.gd) return b.gd - a.gd;
+                    return b.gf - a.gf;
                 });
 
-            const tbody = document.getElementById('leagueLeaderboardBody');
-            tbody.innerHTML = leaguePlayers.map((player, index) => {
-                const rowClass = index < 3 ? `rank-${index + 1}` : '';
-                return `
-                    <tr class="${rowClass}">
-                        <td><strong>#${index + 1}</strong></td>
-                        <td>${player.efootballUser}</td>
-                        <td>${player.country || 'N/A'}</td>
-                        <td>${player.leagueMatchesPlayed || 0}</td>
-                        <td>${player.leagueWins || 0}</td>
-                        <td>${player.leagueDraws || 0}</td>
-                        <td>${player.leagueLosses || 0}</td>
-                        <td>${player.leagueGoalsFor || 0}</td>
-                        <td>${player.leagueGoalsAgainst || 0}</td>
-                        <td>${(player.leagueGoalsFor || 0) - (player.leagueGoalsAgainst || 0)}</td>
-                        <td><strong style="color: #00d4ff;">${player.leaguePoints || 0}</strong></td>
-                    </tr>
-                `;
-            }).join('');
+                const tbody = document.getElementById('leagueLeaderboardBody');
+                tbody.innerHTML = leaguePlayers.map((player, index) => {
+                    const rowClass = index < 3 ? `rank-${index + 1}` : '';
+                    return `
+                        <tr class="${rowClass}">
+                            <td><strong>#${index + 1}</strong></td>
+                            <td>${player.efootballUser}</td>
+                            <td>${player.country || 'N/A'}</td>
+                            <td>${player.p}</td>
+                            <td>${player.w}</td>
+                            <td>${player.d}</td>
+                            <td>${player.l}</td>
+                            <td>${player.gf}</td>
+                            <td>${player.ga}</td>
+                            <td>${player.gd}</td>
+                            <td><strong style="color: #00d4ff;">${player.pts}</strong></td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error(err);
+            }
         }
 
         // Result Submission
-        function openResultModal(matchId) {
-            const match = matches.find(m => m.id === matchId);
-            if (!match) return;
+        async function openResultModal(matchId) {
+            try {
+                const query = `
+                    query GetMatch($id: uuid!) {
+                        matches_by_pk(id: $id) {
+                            id
+                            player1_id
+                            player2_id
+                            player1 { displayName metadata }
+                            player2 { displayName metadata }
+                        }
+                    }
+                `;
+                const { matches_by_pk: match } = await graphql(query, { id: matchId });
+                if (!match) return;
 
-            const opponent = players.find(p => p.id === (match.player1 === currentUser.id ? match.player2 : match.player1));
+                const isPlayer1 = match.player1_id === currentUser.id;
+                const opponent = isPlayer1 ? match.player2 : match.player1;
+                const opponentName = opponent?.metadata?.efootballUser || opponent?.displayName || 'Unknown';
 
-            document.getElementById('resultMatchId').value = matchId;
-            document.getElementById('resultOpponent').value = opponent ? opponent.efootballUser : 'Unknown';
-            
-            document.getElementById('yourScore').value = '';
-            document.getElementById('opponentScore').value = '';
-            document.getElementById('matchScreenshot').value = '';
-            document.getElementById('matchVideo').value = '';
-            
-            document.getElementById('resultModal').classList.add('active');
+                document.getElementById('resultMatchId').value = matchId;
+                document.getElementById('resultOpponent').value = opponentName;
+
+                document.getElementById('yourScore').value = '';
+                document.getElementById('opponentScore').value = '';
+                document.getElementById('matchScreenshot').value = '';
+                document.getElementById('matchVideo').value = '';
+
+                document.getElementById('resultModal').classList.add('active');
+            } catch (err) {
+                console.error(err);
+            }
         }
 
         async function submitResult(event) {
             event.preventDefault();
 
             const matchId = document.getElementById('resultMatchId').value;
-            const match = matches.find(m => m.id === matchId);
-            if (!match) return;
 
-            const yourScore = parseInt(document.getElementById('yourScore').value);
-            const opponentScore = parseInt(document.getElementById('opponentScore').value);
-            const screenshot = document.getElementById('matchScreenshot').files[0];
-
-            if (!screenshot) {
-                showToast('Please upload a screenshot', 'error');
-                return;
-            }
-
-            const opponent = players.find(p => p.id === (match.player1 === currentUser.id ? match.player2 : match.player1));
-
-            showToast('🤖 AI verifying your result...', 'info');
-            
-            const verification = await aiVerifier.verifyResult(match, yourScore, opponentScore, screenshot);
-
-            if (verification.verified) {
-                match.status = 'completed';
-                match.result = {
-                    player1Score: match.player1 === currentUser.id ? yourScore : opponentScore,
-                    player2Score: match.player2 === currentUser.id ? yourScore : opponentScore
-                };
-                match.verifiedAt = new Date().toISOString();
-
-                submittedScreenshots.push({
-                    hash: verification.screenshotHash,
-                    matchId: match.id,
-                    submittedBy: currentUser.id,
-                    submittedAt: new Date().toISOString()
-                });
-                localStorage.setItem('submittedScreenshots', JSON.stringify(submittedScreenshots));
-
-                // Update player stats with goals
-                if (match.type === 'freeplay') {
-                    currentUser.goalsFor = (currentUser.goalsFor || 0) + yourScore;
-                    currentUser.goalsAgainst = (currentUser.goalsAgainst || 0) + opponentScore;
-                    
-                    if (opponent) {
-                        opponent.goalsFor = (opponent.goalsFor || 0) + opponentScore;
-                        opponent.goalsAgainst = (opponent.goalsAgainst || 0) + yourScore;
-                    }
-
-                    if (yourScore > opponentScore) {
-                        currentUser.freePlayPoints = (currentUser.freePlayPoints || 0) + 3;
-                        currentUser.wins = (currentUser.wins || 0) + 1;
-                        
-                        if (opponent) {
-                            opponent.losses = (opponent.losses || 0) + 1;
-                        }
-                        
-                        showToast('🎉 Victory! +3 points', 'success');
-                    } else if (yourScore === opponentScore) {
-                        currentUser.freePlayPoints = (currentUser.freePlayPoints || 0) + 1;
-                        currentUser.draws = (currentUser.draws || 0) + 1;
-                        
-                        if (opponent) {
-                            opponent.freePlayPoints = (opponent.freePlayPoints || 0) + 1;
-                            opponent.draws = (opponent.draws || 0) + 1;
-                        }
-                        
-                        showToast('🤝 Draw! +1 point', 'info');
-                    } else {
-                        currentUser.losses = (currentUser.losses || 0) + 1;
-                        
-                        if (opponent) {
-                            opponent.freePlayPoints = (opponent.freePlayPoints || 0) + 3;
-                            opponent.wins = (opponent.wins || 0) + 1;
-                        }
-                        
-                        showToast('💪 Good try! Better luck next time', 'info');
-                    }
-                    
-                    currentUser.matchesPlayed = (currentUser.matchesPlayed || 0) + 1;
-                    
-                    if (opponent) {
-                        opponent.matchesPlayed = (opponent.matchesPlayed || 0) + 1;
-                    }
-                } else if (match.type === 'league') {
-                    currentUser.leagueGoalsFor = (currentUser.leagueGoalsFor || 0) + yourScore;
-                    currentUser.leagueGoalsAgainst = (currentUser.leagueGoalsAgainst || 0) + opponentScore;
-                    
-                    if (opponent) {
-                        opponent.leagueGoalsFor = (opponent.leagueGoalsFor || 0) + opponentScore;
-                        opponent.leagueGoalsAgainst = (opponent.leagueGoalsAgainst || 0) + yourScore;
-                    }
-
-                    if (yourScore > opponentScore) {
-                        currentUser.leaguePoints = (currentUser.leaguePoints || 0) + 3;
-                        currentUser.leagueWins = (currentUser.leagueWins || 0) + 1;
-                        
-                        if (opponent) {
-                            opponent.leagueLosses = (opponent.leagueLosses || 0) + 1;
-                        }
-                    } else if (yourScore === opponentScore) {
-                        currentUser.leaguePoints = (currentUser.leaguePoints || 0) + 1;
-                        currentUser.leagueDraws = (currentUser.leagueDraws || 0) + 1;
-                        
-                        if (opponent) {
-                            opponent.leaguePoints = (opponent.leaguePoints || 0) + 1;
-                            opponent.leagueDraws = (opponent.leagueDraws || 0) + 1;
-                        }
-                    } else {
-                        currentUser.leagueLosses = (currentUser.leagueLosses || 0) + 1;
-                        
-                        if (opponent) {
-                            opponent.leaguePoints = (opponent.leaguePoints || 0) + 3;
-                            opponent.leagueWins = (opponent.leagueWins || 0) + 1;
+            try {
+                const queryMatch = `
+                    query GetMatch($id: uuid!) {
+                        matches_by_pk(id: $id) {
+                            id
+                            type
+                            player1_id
+                            player2_id
+                            player1 { id metadata displayName }
+                            player2 { id metadata displayName }
                         }
                     }
-                    
-                    currentUser.leagueMatchesPlayed = (currentUser.leagueMatchesPlayed || 0) + 1;
-                    
-                    if (opponent) {
-                        opponent.leagueMatchesPlayed = (opponent.leagueMatchesPlayed || 0) + 1;
-                    }
+                `;
+                const { matches_by_pk: match } = await graphql(queryMatch, { id: matchId });
+                if (!match) return;
+
+                const yourScore = parseInt(document.getElementById('yourScore').value);
+                const opponentScore = parseInt(document.getElementById('opponentScore').value);
+                const screenshot = document.getElementById('matchScreenshot').files[0];
+
+                if (!screenshot) {
+                    showToast('Please upload a screenshot', 'error');
+                    return;
                 }
 
-                // Update opponent in players array
-                if (opponent) {
-                    const oppIndex = players.findIndex(p => p.id === opponent.id);
-                    if (oppIndex !== -1) {
-                        players[oppIndex] = opponent;
+                const isPlayer1 = match.player1_id === currentUser.id;
+                const opponent = isPlayer1 ? match.player2 : match.player1;
+
+                showToast('🤖 AI verifying your result...', 'info');
+
+                const verification = await aiVerifier.verifyResult(match, yourScore, opponentScore, screenshot);
+
+                if (verification.verified) {
+                    const resultObj = {
+                        player1Score: isPlayer1 ? yourScore : opponentScore,
+                        player2Score: isPlayer1 ? opponentScore : yourScore
+                    };
+
+                    const updateMatchMutation = `
+                        mutation UpdateMatch($id: uuid!, $result: jsonb!) {
+                            update_matches_by_pk(pk_columns: { id: $id }, _set: { status: "completed", result: $result }) {
+                                id
+                            }
+                        }
+                    `;
+                    await graphql(updateMatchMutation, { id: matchId, result: resultObj });
+
+                    // Helper to calculate new stats
+                    const calcNewStats = (user, scored, conceded, isWin, isDraw, isLoss) => {
+                        const meta = { ...(user.metadata || {}) };
+                        if (match.type === 'freeplay') {
+                            meta.freePlayPoints = (meta.freePlayPoints || 0) + (isWin ? 3 : isDraw ? 1 : 0);
+                            meta.matchesPlayed = (meta.matchesPlayed || 0) + 1;
+                            meta.wins = (meta.wins || 0) + (isWin ? 1 : 0);
+                            meta.draws = (meta.draws || 0) + (isDraw ? 1 : 0);
+                            meta.losses = (meta.losses || 0) + (isLoss ? 1 : 0);
+                            meta.goalsFor = (meta.goalsFor || 0) + scored;
+                            meta.goalsAgainst = (meta.goalsAgainst || 0) + conceded;
+                        } else {
+                            meta.leaguePoints = (meta.leaguePoints || 0) + (isWin ? 3 : isDraw ? 1 : 0);
+                            meta.leagueMatchesPlayed = (meta.leagueMatchesPlayed || 0) + 1;
+                            meta.leagueWins = (meta.leagueWins || 0) + (isWin ? 1 : 0);
+                            meta.leagueDraws = (meta.leagueDraws || 0) + (isDraw ? 1 : 0);
+                            meta.leagueLosses = (meta.leagueLosses || 0) + (isLoss ? 1 : 0);
+                            meta.leagueGoalsFor = (meta.leagueGoalsFor || 0) + scored;
+                            meta.leagueGoalsAgainst = (meta.leagueGoalsAgainst || 0) + conceded;
+                        }
+                        return meta;
+                    };
+
+                    const userWin = yourScore > opponentScore;
+                    const userDraw = yourScore === opponentScore;
+                    const userLoss = yourScore < opponentScore;
+
+                    const newUserMetadata = calcNewStats(currentUser, yourScore, opponentScore, userWin, userDraw, userLoss);
+                    const newOpponentMetadata = calcNewStats(opponent, opponentScore, yourScore, userLoss, userDraw, userWin);
+
+                    const updateUserMutation = `
+                        mutation UpdateUserMetadata($id: uuid!, $metadata: jsonb!) {
+                            update_users_by_pk(pk_columns: { id: $id }, _set: { metadata: $metadata }) {
+                                id
+                            }
+                        }
+                    `;
+
+                    await graphql(updateUserMutation, { id: currentUser.id, metadata: newUserMetadata });
+                    await graphql(updateUserMutation, { id: opponent.id, metadata: newOpponentMetadata });
+
+                    // Sync local state
+                    currentUser.metadata = newUserMetadata;
+                    await nhost.auth.refreshSession();
+
+                    closeModal('resultModal');
+                    updateStats();
+                    loadActiveMatches();
+                    updateFreePlayLeaderboard();
+                    if (currentUser.metadata.league) {
+                        updateLeagueLeaderboard();
                     }
-                }
 
-                // Update current user in players array
-                const userIndex = players.findIndex(p => p.id === currentUser.id);
-                if (userIndex !== -1) {
-                    players[userIndex] = currentUser;
+                    showToast('✅ Result verified and recorded!', 'success');
+                } else {
+                    showToast('❌ ' + verification.issues.join(', '), 'error');
                 }
-
-                localStorage.setItem('matches', JSON.stringify(matches));
-                localStorage.setItem('players', JSON.stringify(players));
-
-                closeModal('resultModal');
-                updateStats();
-                loadActiveMatches();
-                updateFreePlayLeaderboard();
-                if (currentUser.league) {
-                    updateLeagueLeaderboard();
-                }
-                
-                showToast('✅ Result verified and recorded!', 'success');
-                
-                if (verification.warnings.length > 0) {
-                    verification.warnings.forEach(warning => {
-                        showToast('⚠️ ' + warning, 'warning');
-                    });
-                }
-            } else {
-                showToast('❌ ' + verification.issues.join(', '), 'error');
+            } catch (err) {
+                showToast('Failed to submit result', 'error');
+                console.error(err);
             }
         }
 
         // Chat Functions
-        function openChat(matchId) {
-            const match = matches.find(m => m.id === matchId);
-            if (!match) return;
+        async function openChat(matchId) {
+            try {
+                const query = `
+                    query GetMatch($id: uuid!) {
+                        matches_by_pk(id: $id) {
+                            id
+                            player1_id
+                            player2_id
+                            player1 { displayName metadata }
+                            player2 { displayName metadata }
+                        }
+                    }
+                `;
+                const { matches_by_pk: match } = await graphql(query, { id: matchId });
+                if (!match) return;
 
-            currentChatMatch = match;
-            const opponent = players.find(p => p.id === (match.player1 === currentUser.id ? match.player2 : match.player1));
-            
-            document.getElementById('chatOpponent').textContent = opponent ? opponent.efootballUser : 'Unknown';
-            document.getElementById('chatContainer').classList.add('active');
-            
-            loadChatMessages(matchId);
+                currentChatMatch = match;
+                const isPlayer1 = match.player1_id === currentUser.id;
+                const opponent = isPlayer1 ? match.player2 : match.player1;
+                const opponentName = opponent?.metadata?.efootballUser || opponent?.displayName || 'Unknown';
+
+                document.getElementById('chatOpponent').textContent = opponentName;
+                document.getElementById('chatContainer').classList.add('active');
+
+                loadChatMessages(matchId);
+            } catch (err) {
+                console.error(err);
+            }
         }
 
         function closeChat() {
@@ -2124,186 +2178,233 @@
             currentChatMatch = null;
         }
 
-        function loadChatMessages(matchId) {
-            const messages = chatMessages.filter(m => m.matchId === matchId);
-            const container = document.getElementById('chatMessages');
-            
-            container.innerHTML = '';
-            
-            messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-                .forEach(msg => {
+        async function loadChatMessages(matchId) {
+            try {
+                const query = `
+                    query GetChatMessages($matchId: uuid!) {
+                        chat_messages(where: { match_id: { _eq: $matchId } }, order_by: { timestamp: asc }) {
+                            sender_id
+                            text
+                            timestamp
+                        }
+                    }
+                `;
+                const { chat_messages: messages } = await graphql(query, { matchId });
+                const container = document.getElementById('chatMessages');
+                container.innerHTML = '';
+
+                messages.forEach(msg => {
                     const messageDiv = document.createElement('div');
-                    messageDiv.className = `message ${msg.senderId === currentUser.id ? 'sent' : 'received'}`;
+                    messageDiv.className = `message ${msg.sender_id === currentUser.id ? 'sent' : 'received'}`;
                     messageDiv.innerHTML = `
                         ${msg.text}<br>
                         <small>${new Date(msg.timestamp).toLocaleTimeString()}</small>
                     `;
                     container.appendChild(messageDiv);
                 });
-            
-            container.scrollTop = container.scrollHeight;
+                container.scrollTop = container.scrollHeight;
+            } catch (err) {
+                console.error(err);
+            }
         }
 
-        function sendMessage() {
+        async function sendMessage() {
             const input = document.getElementById('chatInput');
             const text = input.value.trim();
-            
             if (!text || !currentChatMatch) return;
 
-            const opponent = players.find(p => p.id === (currentChatMatch.player1 === currentUser.id ? currentChatMatch.player2 : currentChatMatch.player1));
+            try {
+                const mutation = `
+                    mutation SendMessage($matchId: uuid!, $senderId: uuid!, $text: String!) {
+                        insert_chat_messages_one(object: {
+                            match_id: $matchId,
+                            sender_id: $senderId,
+                            text: $text
+                        }) {
+                            id
+                        }
+                    }
+                `;
+                await graphql(mutation, {
+                    matchId: currentChatMatch.id,
+                    senderId: currentUser.id,
+                    text: text
+                });
 
-            const message = {
-                id: Date.now(),
-                matchId: currentChatMatch.id,
-                senderId: currentUser.id,
-                senderName: currentUser.efootballUser,
-                receiverId: opponent.id,
-                text: text,
-                timestamp: new Date().toISOString()
-            };
-
-            chatMessages.push(message);
-            localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
-
-            loadChatMessages(currentChatMatch.id);
-            input.value = '';
+                input.value = '';
+                loadChatMessages(currentChatMatch.id);
+            } catch (err) {
+                showToast('Failed to send message', 'error');
+            }
         }
 
         // Phase Winners Display
-        function updatePhaseWinnersDisplay() {
-            const freePlayTop3 = document.getElementById('freePlayPhaseTop3');
-            const leagueChampions = document.getElementById('leagueChampions');
-
-            // Free Play Top 3
-            const topFreePlay = players
-                .filter(p => p.role !== 'admin')
-                .sort((a, b) => (b.freePlayPoints || 0) - (a.freePlayPoints || 0))
-                .slice(0, 3);
-
-            if (topFreePlay.length === 0) {
-                freePlayTop3.innerHTML = '<p style="color: #b0b0b0;">No players yet</p>';
-            } else {
-                freePlayTop3.innerHTML = `
-                    <div class="podium">
-                        ${topFreePlay.map((player, index) => {
-                            const places = ['2nd', '1st', '3rd'];
-                            const podiumClass = index === 0 ? 'podium-2' : index === 1 ? 'podium-1' : 'podium-3';
-                            return `
-                                <div class="podium-place ${podiumClass}">
-                                    <div class="podium-card">
-                                        <div class="podium-rank">#${places[index]}</div>
-                                        <div><strong>${player.efootballUser}</strong></div>
-                                        <div>${player.country || 'N/A'}</div>
-                                        <div>${player.freePlayPoints || 0} pts</div>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
+        async function updatePhaseWinnersDisplay() {
+            try {
+                const query = `
+                    query GetPhaseWinners {
+                        users {
+                            displayName
+                            metadata
+                        }
+                    }
                 `;
-            }
+                const { users } = await graphql(query);
 
-            // League Champions
-            const leaguesWithChampions = Object.keys(LEAGUES)
-                .filter(leagueCode => {
-                    const leaguePlayers = players.filter(p => p.league === leagueCode && p.role !== 'admin');
-                    return leaguePlayers.length > 0;
-                })
-                .map(leagueCode => {
-                    const champion = players
-                        .filter(p => p.league === leagueCode && p.role !== 'admin')
-                        .sort((a, b) => (b.leaguePoints || 0) - (a.leaguePoints || 0))[0];
-                    
-                    return { league: LEAGUES[leagueCode].name, champion };
-                });
+                const freePlayTop3 = document.getElementById('freePlayPhaseTop3');
+                const leagueChampions = document.getElementById('leagueChampions');
 
-            if (leaguesWithChampions.length === 0) {
-                leagueChampions.innerHTML = '<p style="color: #b0b0b0;">No league champions yet</p>';
-            } else {
-                leagueChampions.innerHTML = leaguesWithChampions.map(item => `
-                    <div style="margin: 0.5rem 0; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 10px;">
-                        <strong style="color: #00d4ff;">${item.league}:</strong> 
-                        ${item.champion ? `${item.champion.efootballUser} (${item.champion.country || 'N/A'}) - ${item.champion.leaguePoints || 0} pts` : 'No champion yet'}
-                    </div>
-                `).join('');
+                // Free Play Top 3
+                const topFreePlay = users
+                    .filter(u => u.metadata?.role !== 'admin')
+                    .sort((a, b) => (b.metadata?.freePlayPoints || 0) - (a.metadata?.freePlayPoints || 0))
+                    .slice(0, 3);
+
+                if (topFreePlay.length === 0) {
+                    freePlayTop3.innerHTML = '<p style="color: #b0b0b0;">No players yet</p>';
+                } else {
+                    freePlayTop3.innerHTML = `
+                        <div class="podium">
+                            ${topFreePlay.map((player, index) => {
+                                const places = ['2nd', '1st', '3rd'];
+                                const podiumClass = index === 0 ? 'podium-2' : index === 1 ? 'podium-1' : 'podium-3';
+                                return `
+                                    <div class="podium-place ${podiumClass}">
+                                        <div class="podium-card">
+                                            <div class="podium-rank">#${places[index]}</div>
+                                            <div><strong>${player.metadata?.efootballUser || player.displayName}</strong></div>
+                                            <div>${player.metadata?.country || 'N/A'}</div>
+                                            <div>${player.metadata?.freePlayPoints || 0} pts</div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                }
+
+                // League Champions
+                const queryLeagues = `query GetLeagues { leagues { code name } }`;
+                const { leagues } = await graphql(queryLeagues);
+
+                const leaguesWithChampions = leagues
+                    .map(league => {
+                        const champion = users
+                            .filter(u => u.metadata?.league === league.code)
+                            .sort((a, b) => (b.metadata?.leaguePoints || 0) - (a.metadata?.leaguePoints || 0))[0];
+
+                        return { league: league.name, champion };
+                    })
+                    .filter(item => item.champion);
+
+                if (leaguesWithChampions.length === 0) {
+                    leagueChampions.innerHTML = '<p style="color: #b0b0b0;">No league champions yet</p>';
+                } else {
+                    leagueChampions.innerHTML = leaguesWithChampions.map(item => `
+                        <div style="margin: 0.5rem 0; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                            <strong style="color: #00d4ff;">${item.league}:</strong>
+                            ${item.champion ? `${item.champion.metadata?.efootballUser || item.champion.displayName} (${item.champion.metadata?.country || 'N/A'}) - ${item.champion.metadata?.leaguePoints || 0} pts` : 'No champion yet'}
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error(err);
             }
         }
 
         // Full Leaderboard
-        function showFullLeaderboard() {
-            const allPlayers = players
-                .filter(p => p.role !== 'admin')
-                .map(p => ({
-                    ...p,
-                    totalPoints: (p.freePlayPoints || 0) + (p.leaguePoints || 0),
-                    totalGoalsFor: (p.goalsFor || 0) + (p.leagueGoalsFor || 0),
-                    totalGoalsAgainst: (p.goalsAgainst || 0) + (p.leagueGoalsAgainst || 0),
-                    totalMatches: (p.matchesPlayed || 0) + (p.leagueMatchesPlayed || 0),
-                    totalWins: (p.wins || 0) + (p.leagueWins || 0),
-                    totalDraws: (p.draws || 0) + (p.leagueDraws || 0),
-                    totalLosses: (p.losses || 0) + (p.leagueLosses || 0)
-                }))
-                .sort((a, b) => {
-                    if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
-                    const gdA = (a.totalGoalsFor - a.totalGoalsAgainst);
-                    const gdB = (b.totalGoalsFor - b.totalGoalsAgainst);
-                    if (gdB !== gdA) return gdB - gdA;
-                    return b.totalGoalsFor - a.totalGoalsFor;
-                });
+        async function showFullLeaderboard() {
+            try {
+                const query = `
+                    query GetAllPlayers {
+                        users {
+                            displayName
+                            metadata
+                        }
+                    }
+                `;
+                const { users } = await graphql(query);
 
-            const modal = document.createElement('div');
-            modal.className = 'modal active';
-            modal.innerHTML = `
-                <div class="modal-content" style="max-width: 1000px;">
-                    <div class="modal-header">
-                        <h2>Overall Leaderboard</h2>
-                        <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
-                    </div>
-                    <table class="leaderboard-table">
-                        <thead>
-                            <tr>
-                                <th>Rank</th>
-                                <th>Player</th>
-                                <th>Country</th>
-                                <th>P</th>
-                                <th>W</th>
-                                <th>D</th>
-                                <th>L</th>
-                                <th>GF</th>
-                                <th>GA</th>
-                                <th>GD</th>
-                                <th>Pts</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${allPlayers.map((player, index) => {
-                                const rowClass = index < 3 ? `rank-${index + 1}` : '';
-                                const gd = (player.totalGoalsFor || 0) - (player.totalGoalsAgainst || 0);
-                                return `
-                                <tr class="${rowClass}">
-                                    <td><strong>#${index + 1}</strong></td>
-                                    <td>${player.efootballUser}</td>
-                                    <td>${player.country || 'N/A'}</td>
-                                    <td>${player.totalMatches || 0}</td>
-                                    <td>${player.totalWins || 0}</td>
-                                    <td>${player.totalDraws || 0}</td>
-                                    <td>${player.totalLosses || 0}</td>
-                                    <td>${player.totalGoalsFor || 0}</td>
-                                    <td>${player.totalGoalsAgainst || 0}</td>
-                                    <td>${gd}</td>
-                                    <td><strong style="color: #00d4ff;">${player.totalPoints}</strong></td>
+                const allPlayers = users
+                    .filter(u => u.metadata?.role !== 'admin')
+                    .map(u => {
+                        const m = u.metadata || {};
+                        return {
+                            efootballUser: m.efootballUser || u.displayName,
+                            country: m.country,
+                            totalPoints: (m.freePlayPoints || 0) + (m.leaguePoints || 0),
+                            totalGoalsFor: (m.goalsFor || 0) + (m.leagueGoalsFor || 0),
+                            totalGoalsAgainst: (m.goalsAgainst || 0) + (m.leagueGoalsAgainst || 0),
+                            totalMatches: (m.matchesPlayed || 0) + (m.leagueMatchesPlayed || 0),
+                            totalWins: (m.wins || 0) + (m.leagueWins || 0),
+                            totalDraws: (m.draws || 0) + (m.leagueDraws || 0),
+                            totalLosses: (m.losses || 0) + (m.leagueLosses || 0)
+                        };
+                    })
+                    .sort((a, b) => {
+                        if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
+                        const gdA = (a.totalGoalsFor - a.totalGoalsAgainst);
+                        const gdB = (b.totalGoalsFor - b.totalGoalsAgainst);
+                        if (gdB !== gdA) return gdB - gdA;
+                        return b.totalGoalsFor - a.totalGoalsFor;
+                    });
+
+                const modal = document.createElement('div');
+                modal.className = 'modal active';
+                modal.innerHTML = `
+                    <div class="modal-content" style="max-width: 1000px;">
+                        <div class="modal-header">
+                            <h2>Overall Leaderboard</h2>
+                            <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+                        </div>
+                        <table class="leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Player</th>
+                                    <th>Country</th>
+                                    <th>P</th>
+                                    <th>W</th>
+                                    <th>D</th>
+                                    <th>L</th>
+                                    <th>GF</th>
+                                    <th>GA</th>
+                                    <th>GD</th>
+                                    <th>Pts</th>
                                 </tr>
-                            `}).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            document.body.appendChild(modal);
+                            </thead>
+                            <tbody>
+                                ${allPlayers.map((player, index) => {
+                                    const rowClass = index < 3 ? `rank-${index + 1}` : '';
+                                    const gd = (player.totalGoalsFor || 0) - (player.totalGoalsAgainst || 0);
+                                    return `
+                                    <tr class="${rowClass}">
+                                        <td><strong>#${index + 1}</strong></td>
+                                        <td>${player.efootballUser}</td>
+                                        <td>${player.country || 'N/A'}</td>
+                                        <td>${player.totalMatches || 0}</td>
+                                        <td>${player.totalWins || 0}</td>
+                                        <td>${player.totalDraws || 0}</td>
+                                        <td>${player.totalLosses || 0}</td>
+                                        <td>${player.totalGoalsFor || 0}</td>
+                                        <td>${player.totalGoalsAgainst || 0}</td>
+                                        <td>${gd}</td>
+                                        <td><strong style="color: #00d4ff;">${player.totalPoints}</strong></td>
+                                    </tr>
+                                `}).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            } catch (err) {
+                console.error(err);
+            }
         }
 
         // Admin Functions
         function showAdminModal() {
-            if (!currentUser || currentUser.role !== 'admin') {
+            if (!currentUser || currentUser.metadata.role !== 'admin') {
                 showToast('Unauthorized', 'error');
                 return;
             }
@@ -2312,90 +2413,129 @@
             document.getElementById('adminModal').classList.add('active');
         }
 
-        function loadAdminData() {
-            // Load players
-            const playersBody = document.getElementById('adminPlayersBody');
-            playersBody.innerHTML = players
-                .filter(p => p.role !== 'admin')
-                .map(player => `
-                    <tr>
-                        <td>${player.id}</td>
-                        <td>${player.name}</td>
-                        <td>${player.email}</td>
-                        <td>${player.country || 'N/A'}</td>
-                        <td><span class="status-badge status-${player.status || 'active'}">${player.status || 'active'}</span></td>
-                        <td>${player.freePlayPoints || 0}</td>
-                        <td>${player.leaguePoints || 0}</td>
-                        <td class="admin-controls">
-                            <button class="btn btn-warning" onclick="suspendPlayer(${player.id})">${player.status === 'suspended' ? 'Unsuspend' : 'Suspend'}</button>
-                            <button class="btn btn-danger" onclick="blockPlayer(${player.id})">${player.status === 'blocked' ? 'Unblock' : 'Block'}</button>
-                            <button class="btn btn-danger" onclick="removePlayer(${player.id})">Remove</button>
-                            <button class="btn btn-primary" onclick="openDeductPointsModal(${player.id}, '${player.name}')">Deduct Points</button>
-                        </td>
-                    </tr>
-                `).join('');
+        async function loadAdminData() {
+            try {
+                const query = `
+                    query GetAdminData {
+                        users {
+                            id
+                            displayName
+                            email
+                            metadata
+                        }
+                        matches(where: { status: { _eq: "completed" } }) {
+                            id
+                            player1_id
+                            player2_id
+                            result
+                            createdAt
+                            player1 { displayName metadata }
+                            player2 { displayName metadata }
+                        }
+                        leagues {
+                            code
+                            name
+                            teams_limit
+                        }
+                        free_play_phase_winners(order_by: { date: desc }) {
+                            phase
+                            winners
+                            date
+                        }
+                    }
+                `;
+                const { users, matches: completedMatches, leagues, free_play_phase_winners } = await graphql(query);
 
-            // Load matches
-            const matchesBody = document.getElementById('adminMatchesBody');
-            matchesBody.innerHTML = matches
-                .filter(m => m.status === 'completed')
-                .map(match => {
-                    const player1 = players.find(p => p.id === match.player1);
-                    const player2 = players.find(p => p.id === match.player2);
+                // Load players
+                const playersBody = document.getElementById('adminPlayersBody');
+                playersBody.innerHTML = users
+                    .filter(u => u.metadata?.role !== 'admin')
+                    .map(user => {
+                        const m = user.metadata || {};
+                        return `
+                            <tr>
+                                <td>${user.id}</td>
+                                <td>${m.displayName || user.displayName}</td>
+                                <td>${user.email}</td>
+                                <td>${m.country || 'N/A'}</td>
+                                <td><span class="status-badge status-${m.status || 'active'}">${m.status || 'active'}</span></td>
+                                <td>${m.freePlayPoints || 0}</td>
+                                <td>${m.leaguePoints || 0}</td>
+                                <td class="admin-controls">
+                                    <button class="btn btn-warning" onclick="suspendPlayer('${user.id}')">${m.status === 'suspended' ? 'Unsuspend' : 'Suspend'}</button>
+                                    <button class="btn btn-danger" onclick="blockPlayer('${user.id}')">${m.status === 'blocked' ? 'Unblock' : 'Block'}</button>
+                                    <button class="btn btn-danger" onclick="removePlayer('${user.id}')">Remove</button>
+                                    <button class="btn btn-primary" onclick="openDeductPointsModal('${user.id}', '${m.displayName || user.displayName}')">Deduct Points</button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                // Load matches
+                const matchesBody = document.getElementById('adminMatchesBody');
+                matchesBody.innerHTML = completedMatches
+                    .map(match => {
+                        const p1Name = match.player1?.metadata?.efootballUser || match.player1?.displayName || 'Unknown';
+                        const p2Name = match.player2?.metadata?.efootballUser || match.player2?.displayName || 'Unknown';
+                        return `
+                            <tr>
+                                <td>${match.id}</td>
+                                <td>${p1Name} vs ${p2Name}</td>
+                                <td>${match.result?.player1Score || 0} - ${match.result?.player2Score || 0}</td>
+                                <td>${new Date(match.createdAt).toLocaleDateString()}</td>
+                                <td><span class="status-badge status-active">Completed</span></td>
+                                <td>
+                                    <button class="btn btn-warning" onclick="revertMatch('${match.id}')">Revert</button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                // Load leagues
+                const leaguesBody = document.getElementById('adminLeaguesBody');
+                leaguesBody.innerHTML = leagues.map(league => {
+                    const leaguePlayers = users.filter(u => u.metadata?.league === league.code);
+                    const leader = [...leaguePlayers].sort((a, b) => (b.metadata?.leaguePoints || 0) - (a.metadata?.leaguePoints || 0))[0];
+                    const leaderName = leader ? (leader.metadata?.efootballUser || leader.displayName) : 'No players';
+
                     return `
                         <tr>
-                            <td>${match.id}</td>
-                            <td>${player1?.efootballUser || 'Unknown'} vs ${player2?.efootballUser || 'Unknown'}</td>
-                            <td>${match.result?.player1Score || 0} - ${match.result?.player2Score || 0}</td>
-                            <td>${new Date(match.createdAt).toLocaleDateString()}</td>
-                            <td><span class="status-badge status-active">Completed</span></td>
+                            <td><strong style="color: #00d4ff;">${league.name}</strong></td>
+                            <td>${leaguePlayers.length}/${league.teams_limit}</td>
+                            <td>${leaguePlayers.length >= league.teams_limit ?
+                                '<span class="status-badge status-active">Full</span>' :
+                                '<span class="status-badge status-suspended">Open</span>'}</td>
+                            <td>${leader ? `${leaderName} (${leader.metadata?.leaguePoints || 0} pts)` : 'No players'}</td>
                             <td>
-                                <button class="btn btn-warning" onclick="revertMatch('${match.id}')">Revert</button>
+                                <button class="btn btn-primary" onclick="viewLeagueDetails('${league.code}')">View</button>
+                                <button class="btn btn-warning" onclick="resetLeague('${league.code}')">Reset</button>
                             </td>
                         </tr>
                     `;
                 }).join('');
 
-            // Load leagues
-            const leaguesBody = document.getElementById('adminLeaguesBody');
-            leaguesBody.innerHTML = Object.keys(LEAGUES).map(leagueCode => {
-                const leaguePlayers = players.filter(p => p.league === leagueCode && p.role !== 'admin');
-                const leader = leaguePlayers.sort((a, b) => (b.leaguePoints || 0) - (a.leaguePoints || 0))[0];
-                return `
-                    <tr>
-                        <td><strong style="color: #00d4ff;">${LEAGUES[leagueCode].name}</strong></td>
-                        <td>${leaguePlayers.length}/${LEAGUES[leagueCode].teams}</td>
-                        <td>${leaguePlayers.length === LEAGUES[leagueCode].teams ? 
-                            '<span class="status-badge status-active">Full</span>' : 
-                            '<span class="status-badge status-suspended">Open</span>'}</td>
-                        <td>${leader ? `${leader.efootballUser} (${leader.leaguePoints || 0} pts)` : 'No players'}</td>
-                        <td>
-                            <button class="btn btn-primary" onclick="viewLeagueDetails('${leagueCode}')">View</button>
-                            <button class="btn btn-warning" onclick="resetLeague('${leagueCode}')">Reset</button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+                // Load phase winners
+                const phaseWinnersList = document.getElementById('phaseWinnersList');
+                if (free_play_phase_winners.length === 0) {
+                    phaseWinnersList.innerHTML = '<p style="color: #b0b0b0;">No previous phases</p>';
+                } else {
+                    phaseWinnersList.innerHTML = free_play_phase_winners.map((phase, index) => `
+                        <div style="margin: 1rem 0; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                            <strong style="color: #00d4ff;">Phase ${phase.phase}</strong> - ${new Date(phase.date).toLocaleDateString()}
+                            <br>Winners: ${phase.winners.join(', ')}
+                        </div>
+                    `).join('');
+                }
 
-            // Load phase winners
-            const phaseWinnersList = document.getElementById('phaseWinnersList');
-            if (phaseWinners.freePlay.length === 0) {
-                phaseWinnersList.innerHTML = '<p style="color: #b0b0b0;">No previous phases</p>';
-            } else {
-                phaseWinnersList.innerHTML = phaseWinners.freePlay.map((phase, index) => `
-                    <div style="margin: 1rem 0; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 10px;">
-                        <strong style="color: #00d4ff;">Phase ${phase.phase}</strong> - ${new Date(phase.date).toLocaleDateString()}
-                        <br>Winners: ${phase.winners.join(', ')}
-                    </div>
-                `).join('');
+                // Load points deduction dropdown
+                const pointsSelect = document.getElementById('pointsPlayerSelect');
+                pointsSelect.innerHTML = '<option value="">Choose a player...</option>' +
+                    users.filter(u => u.metadata?.role !== 'admin').map(u =>
+                        `<option value="${u.id}">${u.displayName} (${u.metadata?.efootballUser || 'N/A'})</option>`
+                    ).join('');
+            } catch (err) {
+                console.error(err);
             }
-
-            // Load points deduction dropdown
-            const pointsSelect = document.getElementById('pointsPlayerSelect');
-            pointsSelect.innerHTML = '<option value="">Choose a player...</option>' + 
-                players.filter(p => p.role !== 'admin').map(p => 
-                    `<option value="${p.id}">${p.name} (${p.efootballUser})</option>`
-                ).join('');
         }
 
         function switchAdminTab(tab) {
@@ -2406,32 +2546,70 @@
             document.getElementById(`admin${tab.charAt(0).toUpperCase() + tab.slice(1)}Tab`).classList.add('active');
         }
 
-        function suspendPlayer(playerId) {
-            const player = players.find(p => p.id === playerId);
-            if (player) {
-                player.status = player.status === 'suspended' ? 'active' : 'suspended';
-                localStorage.setItem('players', JSON.stringify(players));
+        async function suspendPlayer(playerId) {
+            try {
+                const queryUser = `query GetUser($id: uuid!) { users_by_pk(id: $id) { id metadata } }`;
+                const { users_by_pk: user } = await graphql(queryUser, { id: playerId });
+                if (!user) return;
+
+                const meta = { ...(user.metadata || {}) };
+                meta.status = meta.status === 'suspended' ? 'active' : 'suspended';
+
+                const mutation = `
+                    mutation UpdateUserStatus($id: uuid!, $metadata: jsonb!) {
+                        update_users_by_pk(pk_columns: { id: $id }, _set: { metadata: $metadata }) {
+                            id
+                        }
+                    }
+                `;
+                await graphql(mutation, { id: playerId, metadata: meta });
                 loadAdminData();
-                showToast(`Player ${player.name} ${player.status === 'suspended' ? 'suspended' : 'activated'}`, 'success');
+                showToast(`Player status updated`, 'success');
+            } catch (err) {
+                showToast('Failed to update player status', 'error');
             }
         }
 
-        function blockPlayer(playerId) {
-            const player = players.find(p => p.id === playerId);
-            if (player) {
-                player.status = player.status === 'blocked' ? 'active' : 'blocked';
-                localStorage.setItem('players', JSON.stringify(players));
+        async function blockPlayer(playerId) {
+            try {
+                const queryUser = `query GetUser($id: uuid!) { users_by_pk(id: $id) { id metadata } }`;
+                const { users_by_pk: user } = await graphql(queryUser, { id: playerId });
+                if (!user) return;
+
+                const meta = { ...(user.metadata || {}) };
+                meta.status = meta.status === 'blocked' ? 'active' : 'blocked';
+
+                const mutation = `
+                    mutation UpdateUserStatus($id: uuid!, $metadata: jsonb!) {
+                        update_users_by_pk(pk_columns: { id: $id }, _set: { metadata: $metadata }) {
+                            id
+                        }
+                    }
+                `;
+                await graphql(mutation, { id: playerId, metadata: meta });
                 loadAdminData();
-                showToast(`Player ${player.name} ${player.status === 'blocked' ? 'blocked' : 'unblocked'}`, 'success');
+                showToast(`Player status updated`, 'success');
+            } catch (err) {
+                showToast('Failed to update player status', 'error');
             }
         }
 
-        function removePlayer(playerId) {
+        async function removePlayer(playerId) {
             if (confirm('Are you sure you want to remove this player?')) {
-                players = players.filter(p => p.id !== playerId);
-                localStorage.setItem('players', JSON.stringify(players));
-                loadAdminData();
-                showToast('Player removed', 'info');
+                try {
+                    const mutation = `
+                        mutation DeleteUser($id: uuid!) {
+                            delete_users_by_pk(id: $id) {
+                                id
+                            }
+                        }
+                    `;
+                    await graphql(mutation, { id: playerId });
+                    loadAdminData();
+                    showToast('Player removed', 'info');
+                } catch (err) {
+                    showToast('Failed to remove player. They might have existing matches.', 'error');
+                }
             }
         }
 
@@ -2443,43 +2621,63 @@
             document.getElementById('deductPointsModal').classList.add('active');
         }
 
-        function deductPointsFromModal(event) {
+        async function deductPointsFromModal(event) {
             event.preventDefault();
 
-            const playerId = parseInt(document.getElementById('deductPlayerId').value);
+            const playerId = document.getElementById('deductPlayerId').value;
             const amount = parseInt(document.getElementById('deductAmount').value);
             const reason = document.getElementById('deductReason').value;
 
-            const player = players.find(p => p.id === playerId);
-            if (player) {
-                player.freePlayPoints = Math.max(0, (player.freePlayPoints || 0) - amount);
-                localStorage.setItem('players', JSON.stringify(players));
+            try {
+                const queryUser = `query GetUser($id: uuid!) { users_by_pk(id: $id) { id metadata } }`;
+                const { users_by_pk: user } = await graphql(queryUser, { id: playerId });
+                if (!user) return;
+
+                const meta = { ...(user.metadata || {}) };
+                meta.freePlayPoints = Math.max(0, (meta.freePlayPoints || 0) - amount);
+
+                const mutation = `
+                    mutation UpdateUserMetadata($id: uuid!, $metadata: jsonb!) {
+                        update_users_by_pk(pk_columns: { id: $id }, _set: { metadata: $metadata }) {
+                            id
+                        }
+                    }
+                `;
+                await graphql(mutation, { id: playerId, metadata: meta });
                 
                 closeModal('deductPointsModal');
                 loadAdminData();
                 updateFreePlayLeaderboard();
-                showToast(`Deducted ${amount} points from ${player.name}`, 'warning');
+                showToast(`Deducted ${amount} points`, 'warning');
+            } catch (err) {
+                showToast('Failed to deduct points', 'error');
             }
         }
 
-        function loadPlayerForDeduction() {
-            const playerId = parseInt(document.getElementById('pointsPlayerSelect').value);
+        async function loadPlayerForDeduction() {
+            const playerId = document.getElementById('pointsPlayerSelect').value;
             if (!playerId) {
                 document.getElementById('deductionForm').style.display = 'none';
                 return;
             }
 
-            const player = players.find(p => p.id === playerId);
-            if (player) {
-                document.getElementById('pointsPlayerName').value = player.name;
-                document.getElementById('pointsCurrentFree').value = player.freePlayPoints || 0;
-                document.getElementById('pointsCurrentLeague').value = player.leaguePoints || 0;
-                document.getElementById('deductionForm').style.display = 'block';
+            try {
+                const queryUser = `query GetUser($id: uuid!) { users_by_pk(id: $id) { id displayName metadata } }`;
+                const { users_by_pk: user } = await graphql(queryUser, { id: playerId });
+                if (user) {
+                    const m = user.metadata || {};
+                    document.getElementById('pointsPlayerName').value = m.displayName || user.displayName;
+                    document.getElementById('pointsCurrentFree').value = m.freePlayPoints || 0;
+                    document.getElementById('pointsCurrentLeague').value = m.leaguePoints || 0;
+                    document.getElementById('deductionForm').style.display = 'block';
+                }
+            } catch (err) {
+                console.error(err);
             }
         }
 
-        function deductPoints() {
-            const playerId = parseInt(document.getElementById('pointsPlayerSelect').value);
+        async function deductPoints() {
+            const playerId = document.getElementById('pointsPlayerSelect').value;
             const type = document.getElementById('pointsType').value;
             const amount = parseInt(document.getElementById('pointsAmount').value);
             const reason = document.getElementById('pointsReason').value;
@@ -2489,185 +2687,249 @@
                 return;
             }
 
-            const player = players.find(p => p.id === playerId);
-            if (player) {
+            try {
+                const queryUser = `query GetUser($id: uuid!) { users_by_pk(id: $id) { id metadata } }`;
+                const { users_by_pk: user } = await graphql(queryUser, { id: playerId });
+                if (!user) return;
+
+                const meta = { ...(user.metadata || {}) };
                 if (type === 'free' || type === 'both') {
-                    player.freePlayPoints = Math.max(0, (player.freePlayPoints || 0) - amount);
+                    meta.freePlayPoints = Math.max(0, (meta.freePlayPoints || 0) - amount);
                 }
                 if (type === 'league' || type === 'both') {
-                    player.leaguePoints = Math.max(0, (player.leaguePoints || 0) - amount);
+                    meta.leaguePoints = Math.max(0, (meta.leaguePoints || 0) - amount);
                 }
-                
-                localStorage.setItem('players', JSON.stringify(players));
+
+                const mutation = `
+                    mutation UpdateUserMetadata($id: uuid!, $metadata: jsonb!) {
+                        update_users_by_pk(pk_columns: { id: $id }, _set: { metadata: $metadata }) {
+                            id
+                        }
+                    }
+                `;
+                await graphql(mutation, { id: playerId, metadata: meta });
                 
                 // Log the deduction
-                console.log(`Deducted ${amount} ${type} points from ${player.name}. Reason: ${reason}`);
+                console.log(`Deducted ${amount} ${type} points. Reason: ${reason}`);
                 
                 loadAdminData();
                 updateFreePlayLeaderboard();
-                if (player.league) updateLeagueLeaderboard();
+                if (meta.league) updateLeagueLeaderboard();
                 
-                showToast(`Deducted ${amount} points from ${player.name}`, 'warning');
+                showToast(`Deducted ${amount} points`, 'warning');
                 
                 // Reset form
                 document.getElementById('pointsPlayerSelect').value = '';
                 document.getElementById('deductionForm').style.display = 'none';
                 document.getElementById('pointsAmount').value = '';
                 document.getElementById('pointsReason').value = '';
+            } catch (err) {
+                showToast('Failed to deduct points', 'error');
             }
         }
 
-        function revertMatch(matchId) {
+        async function revertMatch(matchId) {
             if (confirm('Are you sure you want to revert this match? Points will be recalculated.')) {
-                const match = matches.find(m => m.id === matchId);
-                if (match) {
-                    match.status = 'pending';
-                    match.result = null;
-                    localStorage.setItem('matches', JSON.stringify(matches));
+                try {
+                    const mutation = `
+                        mutation RevertMatch($id: uuid!) {
+                            update_matches_by_pk(pk_columns: { id: $id }, _set: { status: "pending", result: null }) {
+                                id
+                            }
+                        }
+                    `;
+                    await graphql(mutation, { id: matchId });
                     loadAdminData();
                     showToast('Match reverted', 'info');
+                } catch (err) {
+                    showToast('Failed to revert match', 'error');
                 }
             }
         }
 
-        function viewLeagueDetails(leagueCode) {
-            const leaguePlayers = players.filter(p => p.league === leagueCode && p.role !== 'admin')
-                .sort((a, b) => (b.leaguePoints || 0) - (a.leaguePoints || 0));
+        async function viewLeagueDetails(leagueCode) {
+            try {
+                const query = `query GetLeaguePlayers($leagueCode: String!) { users(where: { metadata: { _contains: { league: $leagueCode } } }) { displayName metadata } }`;
+                const { users: leaguePlayersRaw } = await graphql(query, { leagueCode });
 
-            const modal = document.createElement('div');
-            modal.className = 'modal active';
-            modal.innerHTML = `
-                <div class="modal-content" style="max-width: 800px;">
-                    <div class="modal-header">
-                        <h2>${LEAGUES[leagueCode].name} Details</h2>
-                        <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
-                    </div>
-                    <table class="leaderboard-table">
-                        <thead>
-                            <tr>
-                                <th>Rank</th>
-                                <th>Player</th>
-                                <th>Country</th>
-                                <th>P</th>
-                                <th>W</th>
-                                <th>D</th>
-                                <th>L</th>
-                                <th>GF</th>
-                                <th>GA</th>
-                                <th>GD</th>
-                                <th>Pts</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${leaguePlayers.map((player, index) => `
+                const leaguePlayers = leaguePlayersRaw.map(u => ({
+                    efootballUser: u.metadata?.efootballUser || u.displayName,
+                    country: u.metadata?.country,
+                    p: u.metadata?.leagueMatchesPlayed || 0,
+                    w: u.metadata?.leagueWins || 0,
+                    d: u.metadata?.leagueDraws || 0,
+                    l: u.metadata?.leagueLosses || 0,
+                    gf: u.metadata?.leagueGoalsFor || 0,
+                    ga: u.metadata?.leagueGoalsAgainst || 0,
+                    gd: (u.metadata?.leagueGoalsFor || 0) - (u.metadata?.leagueGoalsAgainst || 0),
+                    pts: u.metadata?.leaguePoints || 0
+                })).sort((a, b) => b.pts - a.pts);
+
+                const modal = document.createElement('div');
+                modal.className = 'modal active';
+                modal.innerHTML = `
+                    <div class="modal-content" style="max-width: 800px;">
+                        <div class="modal-header">
+                            <h2>League Details</h2>
+                            <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+                        </div>
+                        <table class="leaderboard-table">
+                            <thead>
                                 <tr>
-                                    <td><strong>#${index + 1}</strong></td>
-                                    <td>${player.efootballUser}</td>
-                                    <td>${player.country || 'N/A'}</td>
-                                    <td>${player.leagueMatchesPlayed || 0}</td>
-                                    <td>${player.leagueWins || 0}</td>
-                                    <td>${player.leagueDraws || 0}</td>
-                                    <td>${player.leagueLosses || 0}</td>
-                                    <td>${player.leagueGoalsFor || 0}</td>
-                                    <td>${player.leagueGoalsAgainst || 0}</td>
-                                    <td>${(player.leagueGoalsFor || 0) - (player.leagueGoalsAgainst || 0)}</td>
-                                    <td><strong style="color: #00d4ff;">${player.leaguePoints || 0}</strong></td>
+                                    <th>Rank</th>
+                                    <th>Player</th>
+                                    <th>Country</th>
+                                    <th>P</th>
+                                    <th>W</th>
+                                    <th>D</th>
+                                    <th>L</th>
+                                    <th>GF</th>
+                                    <th>GA</th>
+                                    <th>GD</th>
+                                    <th>Pts</th>
                                 </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            document.body.appendChild(modal);
-        }
-
-        function resetLeague(leagueCode) {
-            if (confirm(`Reset ${LEAGUES[leagueCode].name}? All stats will be cleared.`)) {
-                const leaguePlayers = players.filter(p => p.league === leagueCode);
-                leaguePlayers.forEach(player => {
-                    player.leaguePoints = 0;
-                    player.leagueMatchesPlayed = 0;
-                    player.leagueWins = 0;
-                    player.leagueDraws = 0;
-                    player.leagueLosses = 0;
-                    player.leagueGoalsFor = 0;
-                    player.leagueGoalsAgainst = 0;
-                });
-                localStorage.setItem('players', JSON.stringify(players));
-                loadAdminData();
-                if (currentUser?.league === leagueCode) {
-                    updateLeagueLeaderboard();
-                }
-                showToast('League reset', 'success');
+                            </thead>
+                            <tbody>
+                                ${leaguePlayers.map((player, index) => `
+                                    <tr>
+                                        <td><strong>#${index + 1}</strong></td>
+                                        <td>${player.efootballUser}</td>
+                                        <td>${player.country || 'N/A'}</td>
+                                        <td>${player.p}</td>
+                                        <td>${player.w}</td>
+                                        <td>${player.d}</td>
+                                        <td>${player.l}</td>
+                                        <td>${player.gf}</td>
+                                        <td>${player.ga}</td>
+                                        <td>${player.gd}</td>
+                                        <td><strong style="color: #00d4ff;">${player.pts}</strong></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            } catch (err) {
+                console.error(err);
             }
         }
 
-        function endFreePlayPhase() {
-            if (confirm('End current phase and declare winners?')) {
-                const top3 = players
-                    .filter(p => p.role !== 'admin')
-                    .sort((a, b) => (b.freePlayPoints || 0) - (a.freePlayPoints || 0))
-                    .slice(0, 3)
-                    .map(p => `${p.efootballUser} (${p.country || 'N/A'})`);
+        async function resetLeague(leagueCode) {
+            if (confirm(`Reset league? All stats will be cleared.`)) {
+                try {
+                    const query = `query GetLeaguePlayers($leagueCode: String!) { users(where: { metadata: { _contains: { league: $leagueCode } } }) { id metadata } }`;
+                    const { users } = await graphql(query, { leagueCode });
 
-                if (!phaseWinners.freePlay) phaseWinners.freePlay = [];
-                phaseWinners.freePlay.push({
-                    phase: currentPhase.number,
-                    winners: top3,
-                    date: new Date().toISOString()
-                });
-
-                // Reset free play points for new phase
-                players.forEach(p => {
-                    if (p.role !== 'admin') {
-                        p.freePlayPoints = 0;
-                        p.matchesPlayed = 0;
-                        p.wins = 0;
-                        p.draws = 0;
-                        p.losses = 0;
-                        p.goalsFor = 0;
-                        p.goalsAgainst = 0;
+                    const mutation = `mutation UpdateUserMetadata($id: uuid!, $metadata: jsonb!) { update_users_by_pk(pk_columns: { id: $id }, _set: { metadata: $metadata }) { id } }`;
+                    for (const user of users) {
+                        const m = { ...(user.metadata || {}) };
+                        m.leaguePoints = 0;
+                        m.leagueMatchesPlayed = 0;
+                        m.leagueWins = 0;
+                        m.leagueDraws = 0;
+                        m.leagueLosses = 0;
+                        m.leagueGoalsFor = 0;
+                        m.leagueGoalsAgainst = 0;
+                        await graphql(mutation, { id: user.id, metadata: m });
                     }
-                });
 
-                currentPhase.number++;
-                localStorage.setItem('phaseWinners', JSON.stringify(phaseWinners));
-                localStorage.setItem('currentPhase', JSON.stringify(currentPhase));
-                localStorage.setItem('players', JSON.stringify(players));
-
-                document.getElementById('currentPhase').value = `Phase ${currentPhase.number}`;
-                loadAdminData();
-                updateFreePlayLeaderboard();
-                updatePhaseWinnersDisplay();
-                
-                showToast('Phase ended! Winners recorded.', 'success');
+                    loadAdminData();
+                    if (currentUser.metadata?.league === leagueCode) {
+                        updateLeagueLeaderboard();
+                    }
+                    showToast('League reset', 'success');
+                } catch (err) {
+                    showToast('Failed to reset league', 'error');
+                }
             }
         }
 
-        function resetAllPhases() {
+        async function endFreePlayPhase() {
+            if (confirm('End current phase and declare winners?')) {
+                try {
+                    const leaderboardQuery = `
+                        query GetLeaderboard {
+                            free_play_leaderboard(order_by: {pts: desc}, limit: 3) {
+                                player_name
+                                country
+                            }
+                        }
+                    `;
+                    const { free_play_leaderboard } = await graphql(leaderboardQuery);
+                    const top3 = free_play_leaderboard.map(p => `${p.player_name} (${p.country || 'N/A'})`);
+
+                    const insertMutation = `
+                        mutation InsertPhaseWinner($winners: jsonb!) {
+                            insert_free_play_phase_winners_one(object: {
+                                winners: $winners
+                            }) {
+                                id
+                            }
+                        }
+                    `;
+                    await graphql(insertMutation, { winners: top3 });
+
+                    const getUsersQuery = `query GetUsers { users { id metadata } }`;
+                    const { users } = await graphql(getUsersQuery);
+
+                    const updateUserMutation = `
+                        mutation UpdateUserMetadata($id: uuid!, $metadata: jsonb!) {
+                            update_users_by_pk(pk_columns: { id: $id }, _set: { metadata: $metadata }) {
+                                id
+                            }
+                        }
+                    `;
+
+                    for (const user of users) {
+                        const m = { ...(user.metadata || {}) };
+                        m.freePlayPoints = 0;
+                        m.matchesPlayed = 0;
+                        m.wins = 0;
+                        m.draws = 0;
+                        m.losses = 0;
+                        m.goalsFor = 0;
+                        m.goalsAgainst = 0;
+                        await graphql(updateUserMutation, { id: user.id, metadata: m });
+                    }
+
+                    loadAdminData();
+                    updateFreePlayLeaderboard();
+                    updatePhaseWinnersDisplay();
+
+                    showToast('Phase ended! Winners recorded.', 'success');
+                } catch (err) {
+                    showToast('Failed to end phase', 'error');
+                }
+            }
+        }
+
+        async function resetAllPhases() {
             if (confirm('Reset all phase history? This cannot be undone.')) {
-                phaseWinners = { freePlay: [], leagues: {} };
-                currentPhase = { number: 1, startDate: new Date().toISOString() };
-                localStorage.setItem('phaseWinners', JSON.stringify(phaseWinners));
-                localStorage.setItem('currentPhase', JSON.stringify(currentPhase));
-                
-                document.getElementById('currentPhase').value = 'Phase 1';
-                loadAdminData();
-                updatePhaseWinnersDisplay();
-                showToast('All phases reset', 'info');
+                try {
+                    const mutation = `mutation DeleteAllPhaseWinners { delete_free_play_phase_winners(where: {}) { affected_rows } }`;
+                    await graphql(mutation);
+
+                    loadAdminData();
+                    updatePhaseWinnersDisplay();
+                    showToast('All phases reset', 'info');
+                } catch (err) {
+                    showToast('Failed to reset phases', 'error');
+                }
             }
         }
 
         // Profile Functions
         function showEditProfile() {
-            document.getElementById('editName').value = currentUser.name;
-            document.getElementById('editCountrySearch').value = currentUser.country || '';
-            document.getElementById('editCountry').value = currentUser.country || '';
-            document.getElementById('editEfootball').value = currentUser.efootballUser;
+            const m = currentUser.metadata || {};
+            document.getElementById('editName').value = currentUser.displayName || '';
+            document.getElementById('editCountrySearch').value = m.country || '';
+            document.getElementById('editCountry').value = m.country || '';
+            document.getElementById('editEfootball').value = m.efootballUser || '';
             document.getElementById('editProfileModal').classList.add('active');
         }
 
-        function updateProfile(event) {
+        async function updateProfile(event) {
             event.preventDefault();
 
             const country = document.getElementById('editCountry').value;
@@ -2676,21 +2938,40 @@
                 return;
             }
 
-            currentUser.name = document.getElementById('editName').value;
-            currentUser.country = country;
-            currentUser.efootballUser = document.getElementById('editEfootball').value;
+            const name = document.getElementById('editName').value;
+            const efootballUser = document.getElementById('editEfootball').value;
 
-            const index = players.findIndex(p => p.id === currentUser.id);
-            if (index !== -1) {
-                players[index] = currentUser;
-                localStorage.setItem('players', JSON.stringify(players));
+            try {
+                const newMetadata = {
+                    ...(currentUser.metadata || {}),
+                    country,
+                    efootballUser
+                };
+                const mutation = `
+                    mutation UpdateProfile($id: uuid!, $metadata: jsonb!, $displayName: String!) {
+                        update_users_by_pk(pk_columns: { id: $id }, _set: { metadata: $metadata, displayName: $displayName }) {
+                            id
+                        }
+                    }
+                `;
+                await graphql(mutation, {
+                    id: currentUser.id,
+                    metadata: newMetadata,
+                    displayName: name
+                });
+
+                currentUser.metadata = newMetadata;
+                currentUser.displayName = name;
+                await nhost.auth.refreshSession();
+
+                closeModal('editProfileModal');
+                showProfile();
+                updateFreePlayLeaderboard();
+                if (currentUser.metadata.league) updateLeagueLeaderboard();
+                showToast('Profile updated successfully', 'success');
+            } catch (err) {
+                showToast('Failed to update profile', 'error');
             }
-
-            closeModal('editProfileModal');
-            showProfile();
-            updateFreePlayLeaderboard();
-            if (currentUser.league) updateLeagueLeaderboard();
-            showToast('Profile updated successfully', 'success');
         }
 
         // Modal Functions
@@ -2737,6 +3018,21 @@
         document.addEventListener('DOMContentLoaded', () => {
             initializeAdmin();
             populateCountries();
+        });
+
+        // Expose functions to window for HTML event handlers
+        Object.assign(window, {
+            showHome, showFreePlay, showLeagues, showLeaderboard, showProfile,
+            showLoginModal, showRegisterModal, logout, showAdminModal,
+            switchMode, handleRegister, handleLogin, findOpponent,
+            openResultModal, openChat, submitResult, sendMessage,
+            switchAdminTab, suspendPlayer, blockPlayer, removePlayer,
+            openDeductPointsModal, deductPointsFromModal, deductPoints,
+            revertMatch, viewLeagueDetails, resetLeague, endFreePlayPhase,
+            resetAllPhases, showEditProfile, updateProfile, closeModal,
+            switchToLogin, switchToRegister, filterCountries, filterEditCountries,
+            showCountryList, showEditCountryList, selectCountry, selectEditCountry,
+            closeChat, joinLeague, loadPlayerForDeduction
         });
     </script>
 </body>
