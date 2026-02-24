@@ -1072,10 +1072,7 @@
                 </div>
                 <div class="form-group">
                     <label>Country</label>
-                    <div class="country-search">
-                        <input type="text" class="search-input" id="countrySearch" placeholder="Enter or search your country..." onkeyup="filterCountries()" onclick="showCountryList()" required>
-                        <div class="country-list" id="countryList"></div>
-                    </div>
+                    <input type="text" id="countrySearch" placeholder="Enter your country" required>
                 </div>
                 <div class="form-group">
                     <label>eFootball Username</label>
@@ -1287,10 +1284,7 @@
                 </div>
                 <div class="form-group">
                     <label>Country</label>
-                    <div class="country-search">
-                        <input type="text" class="search-input" id="editCountrySearch" placeholder="Enter or search your country..." onkeyup="filterEditCountries()" onclick="showEditCountryList()" required>
-                        <div class="country-list" id="editCountryList"></div>
-                    </div>
+                    <input type="text" id="editCountrySearch" placeholder="Enter your country" required>
                 </div>
                 <div class="form-group">
                     <label>eFootball Username</label>
@@ -1426,12 +1420,22 @@
             window.closeMobileMenu();
             const modal = document.getElementById('registerModal');
             if (modal) modal.classList.add('active');
-            if (window.populateCountries) window.populateCountries();
+
         };
 
         window.closeModal = function(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) modal.classList.remove('active');
+        };
+
+        window.switchToLogin = function() {
+            window.closeModal('registerModal');
+            window.showLoginModal();
+        };
+
+        window.switchToRegister = function() {
+            window.closeModal('loginModal');
+            window.showRegisterModal();
         };
 
         window.showToast = function(message, type = 'info') {
@@ -1465,17 +1469,6 @@
         }
 
         // All countries that play eFootball
-        const COUNTRIES = [
-            "Argentina", "Australia", "Austria", "Belgium", "Brazil", "Bulgaria", "Canada", 
-            "Chile", "China", "Colombia", "Costa Rica", "Croatia", "Czech Republic", "Denmark", 
-            "Ecuador", "Egypt", "England", "Finland", "France", "Germany", "Ghana", "Greece", 
-            "Hungary", "Iceland", "India", "Indonesia", "Iran", "Ireland", "Israel", "Italy", 
-            "Ivory Coast", "Japan", "Kazakhstan", "Kenya", "Malaysia", "Mexico", "Morocco", 
-            "Netherlands", "New Zealand", "Nigeria", "Norway", "Peru", "Philippines", "Poland", 
-            "Portugal", "Qatar", "Romania", "Russia", "Saudi Arabia", "Scotland", "Senegal", 
-            "Serbia", "Singapore", "Slovakia", "Slovenia", "South Africa", "South Korea", "Spain", 
-            "Sweden", "Switzerland", "Thailand", "Tunisia", "Turkey", "Ukraine", "United Arab Emirates", 
-            "United Kingdom", "United States", "Uruguay", "Venezuela", "Vietnam", "Wales", "Zimbabwe"
         ];
 
         // League configurations
@@ -1538,65 +1531,6 @@
         // Initialize admin (No longer needed with Nhost Auth)
         function initializeAdmin() {}
 
-        // Populate country lists
-        function populateCountries() {
-            const countryList = document.getElementById('countryList');
-            const editCountryList = document.getElementById('editCountryList');
-            
-            if (countryList) {
-                countryList.innerHTML = COUNTRIES.map(country => 
-                    `<div class="country-item" onclick="selectCountry('${country}')">${country}</div>`
-                ).join('');
-            }
-            
-            if (editCountryList) {
-                editCountryList.innerHTML = COUNTRIES.map(country => 
-                    `<div class="country-item" onclick="selectEditCountry('${country}')">${country}</div>`
-                ).join('');
-            }
-        }
-
-        function filterCountries() {
-            const search = document.getElementById('countrySearch').value.toLowerCase();
-            const filtered = COUNTRIES.filter(c => c.toLowerCase().includes(search));
-            const countryList = document.getElementById('countryList');
-            
-            countryList.innerHTML = filtered.map(country => 
-                `<div class="country-item" onclick="selectCountry('${country}')">${country}</div>`
-            ).join('');
-            
-            countryList.classList.add('active');
-        }
-
-        function filterEditCountries() {
-            const search = document.getElementById('editCountrySearch').value.toLowerCase();
-            const filtered = COUNTRIES.filter(c => c.toLowerCase().includes(search));
-            const countryList = document.getElementById('editCountryList');
-            
-            countryList.innerHTML = filtered.map(country => 
-                `<div class="country-item" onclick="selectEditCountry('${country}')">${country}</div>`
-            ).join('');
-            
-            countryList.classList.add('active');
-        }
-
-        function showCountryList() {
-            document.getElementById('countryList').classList.add('active');
-        }
-
-        function showEditCountryList() {
-            document.getElementById('editCountryList').classList.add('active');
-        }
-
-        function selectCountry(country) {
-            document.getElementById('countrySearch').value = country;
-            document.getElementById('countryList').classList.remove('active');
-        }
-
-        function selectEditCountry(country) {
-            document.getElementById('editCountrySearch').value = country;
-            document.getElementById('editCountryList').classList.remove('active');
-        }
 
         // AI Image Analysis
         async function analyzeScreenshot(imageFile) {
@@ -1788,56 +1722,98 @@
 
         // Authentication Functions
         async function handleRegister(event) {
-            event.preventDefault();
-
-            const email = document.getElementById('regEmail').value;
-            const password = document.getElementById('regPassword').value;
-            const name = document.getElementById('regName').value;
-            const efootballUser = document.getElementById('regEfootball').value;
-            const country = document.getElementById('countrySearch').value;
-
-            if (!country) {
-                showToast('Please enter your country', 'error');
+            if (!nhost) {
+                showToast('Nhost is not initialized. Please refresh the page.', 'error');
                 return;
             }
+            event.preventDefault();
+            const btn = event.target.querySelector('button[type="submit"]');
+            const originalText = btn.textContent;
 
-            const { session, error } = await nhost.auth.signUp({
-                email,
-                password,
-                options: {
-                    displayName: name,
-                    metadata: {
-                        country,
-                        efootballUser,
-                        league: null,
-                        role: 'player',
-                        status: 'active'
-                    }
+            try {
+                btn.disabled = true;
+                btn.textContent = 'Processing...';
+
+                const email = document.getElementById('regEmail').value;
+                const password = document.getElementById('regPassword').value;
+                const name = document.getElementById('regName').value;
+                const efootballUser = document.getElementById('regEfootball').value;
+                const country = document.getElementById('countrySearch').value;
+
+                console.log('Attempting registration for:', email);
+
+                if (!country) {
+                    showToast('Please enter your country', 'error');
+                    return;
                 }
-            });
 
-            if (error) {
-                showToast(error.message, 'error');
-            } else {
-                showToast('Registration successful! Please login.', 'success');
-                closeModal('registerModal');
-                showLoginModal();
+                const { session, error } = await nhost.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        displayName: name,
+                        metadata: {
+                            country,
+                            efootballUser,
+                            league: null,
+                            role: 'player',
+                            status: 'active'
+                        }
+                    }
+                });
+
+                if (error) {
+                    console.error('Registration error:', error);
+                    showToast(error.message, 'error');
+                } else {
+                    console.log('Registration successful');
+                    showToast('Registration successful! Please login.', 'success');
+                    closeModal('registerModal');
+                    showLoginModal();
+                }
+            } catch (err) {
+                console.error('Unexpected registration error:', err);
+                showToast('An unexpected error occurred. Please try again.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
             }
         }
 
         async function handleLogin(event) {
+            if (!nhost) {
+                showToast('Nhost is not initialized. Please refresh the page.', 'error');
+                return;
+            }
             event.preventDefault();
+            const btn = event.target.querySelector('button[type="submit"]');
+            const originalText = btn.textContent;
 
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
+            try {
+                btn.disabled = true;
+                btn.textContent = 'Logging in...';
 
-            const { session, error } = await nhost.auth.signIn({ email, password });
-            
-            if (error) {
-                showToast(error.message, 'error');
-            } else {
-                showToast(`Welcome back!`, 'success');
-                closeModal('loginModal');
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+
+                console.log('Attempting login for:', email);
+
+                const { session, error } = await nhost.auth.signIn({ email, password });
+
+                if (error) {
+                    console.error('Login error:', error);
+                    showToast(error.message, 'error');
+                } else {
+                    console.log('Login successful');
+                    showToast(`Welcome back!`, 'success');
+                    closeModal('loginModal');
+                }
+            } catch (err) {
+                console.error('Unexpected login error:', err);
+                showToast('An unexpected error occurred. Please try again.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
             }
         }
 
@@ -3127,60 +3103,19 @@
             }
         }
 
-        // Modal Functions
-        function showLoginModal() {
-            closeMobileMenu();
-            document.getElementById('loginModal').classList.add('active');
-        }
 
-        function showRegisterModal() {
-            closeMobileMenu();
-            populateCountries();
-            document.getElementById('registerModal').classList.add('active');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        }
-
-        function switchToLogin() {
-            closeModal('registerModal');
-            showLoginModal();
-        }
-
-        function switchToRegister() {
-            closeModal('loginModal');
-            showRegisterModal();
-        }
-
-
-        // Click outside to close country lists
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.country-search')) {
-                document.getElementById('countryList')?.classList.remove('active');
-                document.getElementById('editCountryList')?.classList.remove('active');
-            }
-        });
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeAdmin();
-            populateCountries();
-        });
 
         // Expose functions to window for HTML event handlers
         Object.assign(window, {
-            populateCountries, showLeaderboard, logout, showAdminModal,
-            switchMode, handleRegister, handleLogin, findOpponent,
+            showLeaderboard, logout, showAdminModal,
             openResultModal, openChat, submitResult, sendMessage,
             switchAdminTab, suspendPlayer, blockPlayer, removePlayer,
             openDeductPointsModal, deductPointsFromModal, deductPoints,
             revertMatch, viewLeagueDetails, resetLeague, endFreePlayPhase,
-            resetAllPhases, showEditProfile, updateProfile, closeModal,
-            switchToLogin, switchToRegister, filterCountries, filterEditCountries,
-            showCountryList, showEditCountryList, selectCountry, selectEditCountry,
+            resetAllPhases, showEditProfile, updateProfile,
             closeChat, joinLeague, loadPlayerForDeduction,
-            updateProfileDisplay, loadLeagues, updateLeagueLeaderboard
+            updateProfileDisplay, loadLeagues, updateLeagueLeaderboard,
+            handleRegister, handleLogin, switchMode, findOpponent
         });
     </script>
 </body>
