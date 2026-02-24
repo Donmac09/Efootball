@@ -1488,15 +1488,17 @@
         };
 
         // State
+        let currentUser = null;
         window.currentUser = null;
 
         nhost.auth.onAuthStateChanged((event, session) => {
             if (session) {
-                window.currentUser = {
+                currentUser = {
                     ...session.user,
                     name: session.user.displayName,
                     ...session.user.metadata
                 };
+                window.currentUser = currentUser;
 
                 document.getElementById('loginBtn').style.display = 'none';
                 document.getElementById('registerBtn').style.display = 'none';
@@ -3177,7 +3179,8 @@
             resetAllPhases, showEditProfile, updateProfile, closeModal,
             switchToLogin, switchToRegister, filterCountries, filterEditCountries,
             showCountryList, showEditCountryList, selectCountry, selectEditCountry,
-            closeChat, joinLeague, loadPlayerForDeduction
+            closeChat, joinLeague, loadPlayerForDeduction,
+            updateProfileDisplay, loadLeagues, updateLeagueLeaderboard
         });
     </script>
 </body>
